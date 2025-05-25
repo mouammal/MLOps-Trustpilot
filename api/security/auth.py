@@ -1,0 +1,1 @@
+# Authentification (token JWT, OAuth2, etc.)

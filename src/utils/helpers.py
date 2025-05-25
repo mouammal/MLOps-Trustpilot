@@ -1,0 +1,1 @@
+# Fonctions utilitaires (logs, config, etc.)

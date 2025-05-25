@@ -1,0 +1,1 @@
+ # Script d'installation/env automatique
