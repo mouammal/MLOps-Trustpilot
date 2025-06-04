@@ -1,3 +1,4 @@
+<pre><code>'''
 trustpilot-mlops/
 ├── data/
 │   ├── raw/                         # Données brutes (scrapées)
@@ -55,4 +56,4 @@ trustpilot-mlops/
 ├── dvc.yaml                        # Pipelines versionnés DVC
 ├── .gitignore
 ├── README.md                       # Documentation du projet
-
+'''</code></pre>
