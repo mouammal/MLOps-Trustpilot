@@ -1,8 +1,0 @@
-[core]
-    remote = dagshub
-['remote "myremote"']
-    url = gdrive://1H_HW-5Mv-7R2kP9RZ1NMa3z_icH6St50
-['remote "dagshub"']
-    url = https://dagshub.com/Rami-Louati/MLOps-Trustpilot.dvc
-    auth = basic
-    user = Rami-Louati

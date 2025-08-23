@@ -1,11 +1,22 @@
 # Paramètres globaux (chemins, hyperparams)
 from nltk.corpus import stopwords
+from typing import Set
+
+try:
+    from nltk.corpus import stopwords as nltk_stopwords
+    FR_STOPWORDS: Set[str] = set(nltk_stopwords.words('french'))
+except Exception:
+    # fallback minimal si NLTK indisponible
+    FR_STOPWORDS = {
+        "et","ou","de","la","le","les","des","du","un","une","au","aux","en","dans","pour","par","avec","sans",
+        "sur","ce","cet","cette","ces","à","a","est","sont","été","être","avoir","plus","moins","très","trop"
+    }
+
+FR_STOPWORDS = {w.lower() for w in FR_STOPWORDS}
 
 # Stopwords français de base + custom
-CUSTOM_STOPWORDS = list(set(
-    stopwords.words('french') +
-    ['très', 'Très', 'tres', 'Bien', 'bien', 'Bonne', 'bonne', 'Bon', 'bon']
-))
+CUSTOM_STOPWORDS = FR_STOPWORDS | {'très', 'Très', 'tres', 'Bien', 'bien', 'Bonne', 'bonne', 'Bon', 'bon'}
+CUSTOM_STOPWORDS = sorted(CUSTOM_STOPWORDS)
 
 # Les catégories et leurs expressions associées
 CATEGORIES = {

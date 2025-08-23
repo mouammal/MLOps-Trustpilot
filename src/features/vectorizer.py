@@ -1,1 +1,0 @@
-# Vectorisation, encodage

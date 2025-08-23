@@ -1,12 +1,14 @@
 # Modèles Pydantic
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
-class TextInput(BaseModel):
-    text: str
+class PredictText(BaseModel):
+    text: str = Field(..., min_length=3)
 
-class LabelPrediction(BaseModel):
+class PredictLabelResponse(BaseModel):
     label: str
+    model_version: str | None = None
 
-class ScorePrediction(BaseModel):
+class PredictScoreResponse(BaseModel):
     score: float
+    model_version: str | None = None

@@ -1,0 +1,49 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mlops-trustpilot:latest   # <— nom unique commun
+    container_name: mlops_trustpilot_api
+    ports: ["8000:8000"]
+    environment:
+      LABEL_MODEL_PATH: "models/random_forest/model.joblib"
+      SCORE_MODEL_PATH: "models/linear_regression/model.joblib"
+      SECRET_KEY: ${SECRET_KEY:-dev-secret}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    volumes:
+      - ./models:/app/models:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys,json; r=urllib.request.urlopen('http://127.0.0.1:8000/health/ready', timeout=2); sys.exit(0 if json.loads(r.read().decode()).get('status')=='ready' else 1)"]
+      interval: 20s
+      timeout: 4s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  preprocess:
+    image: mlops-trustpilot:latest   # <— réutilise l'image déjà buildée
+    container_name: mlops_trustpilot_preprocess
+    command: python -m src.data.preprocess
+    environment:
+      RAW_CSV: "data/raw/raw_data.csv"
+      PROC_CSV: "data/processed/processed_data.csv"
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    volumes:
+      - ./src:/app/src
+      - ./data:/app/data
+    restart: "no"
+    profiles: ["jobs"]
+
+  train:
+    image: mlops-trustpilot:latest
+    container_name: mlops_trustpilot_train
+    command: python -m src.models.train_model
+    environment:
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+    restart: "no"
+    profiles: ["jobs"]

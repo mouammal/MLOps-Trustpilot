@@ -1,58 +1,66 @@
+from __future__ import annotations
+from pathlib import Path
+import json
+import joblib
 import pandas as pd
 import numpy as np
-import joblib
-import os
 from sklearn.model_selection import train_test_split
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LinearRegression
+from sklearn.metrics import accuracy_score, f1_score, mean_absolute_error, root_mean_squared_error, r2_score
+from src.models.pipelines import build_label_pipeline, build_score_pipeline
 
-# 1. Charger les données
-data_path = "data/processed/processed_data.csv"
-data = pd.read_csv(data_path)
+# Colonnes utiles du CSV
+TEXT_COL   = "clean_reviews"   # texte d'entrée
+LABEL_COL  = "category"        # classe 
+SCORE_COL  = "score_reviews"   # score numérique
 
-# Features
-X_text = data["clean_reviews"].fillna("")
+DATA = Path("data/processed/processed_data.csv")
+LABEL_OUT = Path("models/random_forest")
+SCORE_OUT = Path("models/linear_regression")
+LABEL_OUT.mkdir(parents=True, exist_ok=True)
+SCORE_OUT.mkdir(parents=True, exist_ok=True)
 
-# === Classification ===
-print("== Entraînement modèle de classification (catégories) ==")
-y_class = data["category"]
-X_train_class, X_test_class, y_train_class, y_test_class = train_test_split(X_text, y_class, test_size=0.2, random_state=42)
+def main():
+    df = pd.read_csv(DATA)
+    for c in [TEXT_COL, LABEL_COL, SCORE_COL]:
+        assert c in df.columns, f"Colonne manquante: {c}"
 
-vectorizer_class = TfidfVectorizer(ngram_range=(1, 2), max_features=5000)
-X_train_vec_class = vectorizer_class.fit_transform(X_train_class)
-X_test_vec_class = vectorizer_class.transform(X_test_class)
+    X = df[TEXT_COL].fillna("")
+    X = df[TEXT_COL].astype(str).tolist()
 
-classifier = RandomForestClassifier(n_estimators=100, random_state=42)
-classifier.fit(X_train_vec_class, y_train_class)
+    ###################
+    # ----- LABEL -----
+    ###################
+    y_label = df[LABEL_COL]
+    X_tr, X_te, y_tr, y_te = train_test_split(X, y_label, test_size=0.2, random_state=42, stratify=y_label)
+    label_pipe = build_label_pipeline().fit(X_tr, y_tr)
+    y_pred = label_pipe.predict(X_te)
+    metrics_label = {
+        "accuracy": float(accuracy_score(y_te, y_pred)),
+        "f1_weighted": float(f1_score(y_te, y_pred, average="weighted")),
+        "n_train": int(len(X_tr)), "n_test": int(len(X_te)),
+    }
+    joblib.dump(label_pipe, LABEL_OUT / "model.joblib", compress=("xz", 3))
+    (LABEL_OUT / "metrics.json").write_text(json.dumps(metrics_label, indent=2))
 
-# Sauvegarde
-joblib.dump(classifier, "models/random_forest/model.pkl")
-joblib.dump(vectorizer_class, "models/random_forest/vectorizer.pkl")
+    ###################
+    # ----- SCORE -----
+    ###################
+    y_score = df[SCORE_COL].astype(float)
+    X_tr, X_te, y_tr, y_te = train_test_split(X, y_score, test_size=0.2, random_state=42)
+    score_pipe = build_score_pipeline().fit(X_tr, y_tr)
+    y_hat = score_pipe.predict(X_te)
+    y_hat = np.clip(y_hat, 0, 5)
 
-print("Modèle de classification entraîné et sauvegardé.")
+    metrics_score = {
+        "mae": float(mean_absolute_error(y_te, y_hat)),
+        "rmse": float(root_mean_squared_error(y_te, y_hat)),
+        "r2": float(r2_score(y_te, y_hat)),
+        "n_train": int(len(X_tr)), "n_test": int(len(X_te)),
+    }
+    joblib.dump(score_pipe, SCORE_OUT / "model.joblib", compress=("xz", 3))
+    (SCORE_OUT / "metrics.json").write_text(json.dumps(metrics_score, indent=2))
 
+    print("Saved:", LABEL_OUT / "model.joblib", "|", SCORE_OUT / "model.joblib")
 
-# === Régression ===
-print("== Entraînement modèle de régression (score) ==")
-y_reg = data["score_reviews"]
-X_train_reg, X_test_reg, y_train_reg, y_test_reg = train_test_split(X_text, y_reg, test_size=0.2, random_state=42)
-
-vectorizer_reg = TfidfVectorizer(ngram_range=(1, 2), max_features=5000)
-X_train_vec_reg = vectorizer_reg.fit_transform(X_train_reg)
-X_test_vec_reg = vectorizer_reg.transform(X_test_reg)
-
-regressor = LinearRegression()
-regressor.fit(X_train_vec_reg, y_train_reg)
-
-# Prédictions
-y_pred = regressor.predict(X_test_vec_reg)
-
-# CLIPPING des prédictions entre 0 et 5
-y_pred_clipped = np.clip(y_pred, 0, 5)
-
-# Sauvegarde
-joblib.dump(regressor, "models/linear_regression/model.pkl")
-joblib.dump(vectorizer_reg, "models/linear_regression/vectorizer.pkl")
-
-print("Modèle de régression entraîné et sauvegardé.")
+if __name__ == "__main__":
+    main()

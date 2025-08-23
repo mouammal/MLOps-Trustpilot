@@ -6,14 +6,9 @@ trustpilot-mlops/
 │   ├── processed/                   # Données nettoyées, prêtes à l'entraînement
 │   │   └── processed_data.csv
 │
-├── notebooks/                      # Notebooks exploratoires (EDA, tests initiaux)
-│   └── eda_trustpilot.ipynb
-│
 ├── src/                            # Code source (modules Python)
 │   ├── data/                       # Scripts de traitement et de préparation des données
 │   │   └── preprocess.py
-│   ├── features/                   # Vectorisation, encodage
-│   │   └── vectorizer.py
 │   ├── models/                     # Entraînement, évaluation, chargement des modèles
 │   │   ├── train_model.py
 │   │   └── evaluate_model.py

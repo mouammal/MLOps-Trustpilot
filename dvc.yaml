@@ -1,0 +1,23 @@
+stages:
+  preprocess:
+    cmd: python -m src.data.preprocess
+    deps:
+      - src/data/preprocess.py
+      - data/raw/raw_data.csv
+    outs:
+      - data/processed/processed_data.csv
+
+  train:
+    cmd: python -m src.models.train_model
+    deps:
+      - src/models/train_model.py
+      - src/models/pipelines.py
+      - data/processed/processed_data.csv
+    outs:
+      - models/random_forest/model.joblib
+      - models/linear_regression/model.joblib
+    metrics:
+      - models/random_forest/metrics.json:
+          cache: false
+      - models/linear_regression/metrics.json:
+          cache: false

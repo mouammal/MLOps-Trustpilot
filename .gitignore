@@ -1,8 +1,11 @@
 # === ENVIRONNEMENT PYTHON ===
 .venv/
+
+# Python cache
 __pycache__/
 *.pyc
 *.pyo
+*.pyd
 
 # === JUPYTER ===
 .ipynb_checkpoints/
