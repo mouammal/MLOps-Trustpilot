@@ -1,8 +1,10 @@
 # Rôles, scopes, accès restreint
 from fastapi import Depends, HTTPException, status
 from api.security.auth import get_current_user
-from api.security.users import fake_users_db
+#from api.security.users import fake_users_db
+from .auth import get_current_user
 
+'''
 def require_role(*allowed_roles):
     """
     Vérifie si l'utilisateur a l'un des rôles autorisés.
@@ -17,5 +19,14 @@ def require_role(*allowed_roles):
         if db_user.get("role") not in allowed_roles:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, 
                                 detail="Permission refusée")
+        return user
+    return role_checker
+'''
+
+def require_role(*allowed_roles):
+    """Vérifie si l'utilisateur a un des rôles autorisés"""
+    def role_checker(user: dict = Depends(get_current_user)):
+        if user.get("role") not in allowed_roles:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Permission refusée")
         return user
     return role_checker
