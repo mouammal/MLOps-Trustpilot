@@ -1,0 +1,36 @@
+# Base image
+FROM python:3.10-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+
+# Install dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential \
+        curl \
+        wget \
+        git \
+        unzip \
+        libpq-dev \
+        default-jdk \
+        chromium-driver \
+        chromium \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /opt/airflow
+
+# Copy and install Python dependencies
+COPY airflow/requirements.txt ./requirements.txt
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
+
+# Copy project source
+COPY src ./src
+COPY airflow/airflow.sh ./airflow.sh
+
+RUN chmod +x airflow.sh
+
+EXPOSE 8080
+
+CMD ["bash", "/opt/airflow/airflow.sh"]
