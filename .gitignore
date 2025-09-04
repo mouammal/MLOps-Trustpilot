@@ -15,9 +15,8 @@ __pycache__/
 data/raw/raw_data.csv
 data/raw/companies_links.csv
 data/raw/scrape_state.json
-data/raw/trustpilot_data_raw_2025-09-02__192043.csv
-data/raw/trustpilot_data_raw_2025-09-03__032642.csv
 data/processed/processed_data11.csv
+data/raw/trustpilot_data_raw_2025-05-16.csv
 data/processed/processed_data.csv
 models/random_forest/model.joblib
 models/random_forest/metrics.json
