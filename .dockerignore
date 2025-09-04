@@ -1,12 +1,26 @@
+# Fichier .dockerignore pour ignorer les fichiers et dossiers inutiles
 .git
 .github
-.venv
-__pycache__/
-*.pyc
-.pytest_cache/
+
+# Exclure les fichiers de données et de configuration
 data/
 .dvc/
 **/*.ipynb
 htmlcov/
 build/
 dist/
+
+# Exclure les dossiers inutiles
+airflow/logs/
+airflow/plugins/
+airflow/dags/
+
+# Exclure les fichiers temporaires
+*.pyc
+*.pyo
+__pycache__/
+.pytest_cache/
+
+# Exclure les fichiers de configuration locaux
+.venv
+venv

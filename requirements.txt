@@ -131,7 +131,6 @@ pickleshare==0.7.5
 Pillow==9.4.0
 platformdirs==4.3.8
 pluggy==1.6.0
-prometheus-client==0.16.0
 prompt-toolkit==3.0.37
 propcache==0.3.2
 psutil==5.9.4
@@ -171,7 +170,7 @@ rich==14.1.0
 rsa==4.9.1
 ruamel.yaml==0.18.14
 ruamel.yaml.clib==0.2.12
-scikit-learn==1.7.1
+scikit-learn==1.6.1    # 1.7.1
 scipy==1.9.3
 scmrepo==3.5.2
 seaborn==0.12.2
@@ -218,7 +217,7 @@ visions==0.7.5
 voluptuous==0.15.2
 wcwidth==0.2.6
 webcolors==1.12
-webdriver-manager==4.0.2
+webdriver-manager==3.8.6
 webencodings==0.5.1
 websocket-client==1.8.0
 widgetsnbextension==4.0.5
@@ -226,3 +225,7 @@ wsproto==1.2.0
 yarl==1.20.1
 ydata-profiling==4.0.0
 zc.lockfile==3.0.post1
+psycopg2-binary>=2.9
+passlib[bcrypt]>=1.7
+python-dotenv==1.0.1
+prometheus_client==0.17.1
