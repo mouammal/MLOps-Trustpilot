@@ -1,0 +1,5 @@
+outs:
+- md5: 52b2c48af8f16d6be727bc9715344550
+  size: 797308
+  hash: md5
+  path: companies_links.csv

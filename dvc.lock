@@ -9,8 +9,8 @@ stages:
       size: 53661432
     - path: src/data/preprocess.py
       hash: md5
-      md5: b8bbb2afe72f4f92c2c9745735d3f0ba
-      size: 1421
+      md5: 3ac52095c06e33819812d2cb1b60f703
+      size: 2127
     outs:
     - path: data/processed/processed_data.csv
       hash: md5
@@ -29,22 +29,22 @@ stages:
       size: 825
     - path: src/models/train_model.py
       hash: md5
-      md5: 88a33506aa01215fed025ee02ae239ba
-      size: 2581
+      md5: 29f9b3c4dc06d7e806eaf81e0f806331
+      size: 2573
     outs:
     - path: models/linear_regression/metrics.json
       hash: md5
-      md5: cd28f5b80c9b33228e4b42eb7af03572
+      md5: 60150a47b438504566d233a959c31787
       size: 135
     - path: models/linear_regression/model.joblib
       hash: md5
-      md5: 029fef45232fa8e2d55fb981399e7dea
-      size: 2074784
+      md5: 1b62593d9175e88a87a3f95fb5cbd953
+      size: 2074712
     - path: models/random_forest/metrics.json
       hash: md5
       md5: c8ed4d546c1bf6493d6ef82cf617af9f
       size: 117
     - path: models/random_forest/model.joblib
       hash: md5
-      md5: 2861c4de2b802d9eae2a7ebcc8bd1929
-      size: 152016252
+      md5: 16ba5aada48f31dafcefba3d5dcc76e0
+      size: 152016156
