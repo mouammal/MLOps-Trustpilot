@@ -1,0 +1,3 @@
+['remote "myremote"']
+    url = s3://dvc
+    endpointurl = https://dagshub.com/mouammal/MLOps-Trustpilot.s3
