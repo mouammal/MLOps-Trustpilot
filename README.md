@@ -62,61 +62,66 @@ trustpilot-mlops/
 '''</code></pre>
 
 ### 1. cloner le projet 
-    ```
-    cd ~
-    git clone <URL_DU_REPO>
-    cd MLOps-Trustpilot
+``` 
+cd ~
+git clone <URL_DU_REPO>
+cd MLOps-Trustpilot
+```
 
 ### 2. Créer un environnement virtuel
-    ```
-    python -m venv venv
-    source venv/bin/activate  # Linux / Mac
-    venv\Scripts\activate  # Windows
+```
+python -m venv venv
+source venv/bin/activate  # Linux / Mac
+venv\Scripts\activate  # Windows
+```
 
 ### 3. Installer les dépendances Python locales
-   ```
-   pip install --upgrade pip
-   pip install -r requirements.txt
+```
+pip install --upgrade pip
+pip install -r requirements.txt
+```
 
 ### 4. Construire les images Docker
 
-    Cette commande va créer les images pour :  
-    - mlops_trustpilot_api (API FastAPI)    
-    - airflow + airflow_postgres  
-
-   ```
-   docker compose build 
+Cette commande va créer les images pour :  
+- mlops_trustpilot_api (API FastAPI)    
+- airflow + airflow_postgres  
+```
+docker compose build 
+```
 
 ### 5. Lancer les services avec Docker Compose :  
-    - API FastAPI : http://localhost:8000   
-    - Airflow Web UI : http://localhost:8080  
-    - Airflow Postgres : port 5432  
-    - pgAdmin : http://localhost:5050
-    - Prometheus : http://localhost:9090
-    - Grafana : http://localhost:3000  
-    ```
-    docker compose up -d
+- API FastAPI : http://localhost:8000   
+- Airflow Web UI : http://localhost:8080  
+- Airflow Postgres : port 5432  
+- pgAdmin : http://localhost:5050
+- Prometheus : http://localhost:9090
+- Grafana : http://localhost:3000  
+```
+docker compose up -d
+```
 
 ### 6. Utiliser l’API (exemple prediction label)
 Il faut se connecter d'abord via "Authorize" ou obtenir un "Access Token" via le endpoint /token  
-   ```   
-    curl -X POST "http://localhost:8000/predict-label" 
-    -H "accept: application/json" 
-    -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE" 
-    -H "Content-Type: application/json" 
-    -d '{
-            "text": "La livraison a été rapide et le produit est conforme, très satisfait !"
-        }'
-
+```   
+curl -X POST "http://localhost:8000/predict-label" 
+-H "accept: application/json" 
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE" 
+-H "Content-Type: application/json" 
+-d '{
+        "text": "La livraison a été rapide et le produit est conforme, très satisfait !"
+    }'
+```
 sur Powershell Windows : 
-   ```   
-    Invoke-RestMethod -Uri "http://localhost:8000/predict-label" `
-    -Method POST `
-    -Headers @{
-        "Content-Type" = "application/json"
-        "Authorization" = "Bearer YOUR_ACCESS_TOKEN_HERE"
-    } `
-    -Body '{ "text": "la livraison est rapide et efficace" }'
+```   
+Invoke-RestMethod -Uri "http://localhost:8000/predict-label" `
+-Method POST `
+-Headers @{
+    "Content-Type" = "application/json"
+    "Authorization" = "Bearer YOUR_ACCESS_TOKEN_HERE"
+} `
+-Body '{ "text": "la livraison est rapide et efficace" }'
+```
 
 ### 7. Utiliser Airflow  
 - Se connecter à l’UI : http://localhost:8080
@@ -136,10 +141,11 @@ sur Powershell Windows :
     - Random Forest : ./models/random_forest/model.joblib  
     - Linear Regression : ./models/linear_regression/model.joblib
 
-### 9. Nettoyer l’environnement
-    ```  
-    docker compose down -v  
-  
+### 9. Nettoyer l’environnement (arret des conteneurs) 
+``` 
+docker compose down 
+```
+ 
 ### 10. Docker Compose Services
 - API + Jobs
     - api : API FastAPI

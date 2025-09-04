@@ -1,3 +1,5 @@
-['remote "myremote"']
+[core]
+    remote = origin
+['remote "origin"']
     url = s3://dvc
-    endpointurl = https://dagshub.com/mouammal/MLOps-Trustpilot.s3
+    endpointurl = https://dagshub.com/mouammal.ziadah/MLOps-Trustpilot.s3

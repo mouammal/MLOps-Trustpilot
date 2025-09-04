@@ -77,8 +77,8 @@ def parse_reviews(html, company):
                 'title_reviews': card.find('h2', class_='typography_heading-xs__osRhC typography_appearance-default__t8iAq').text.strip()
                 if card.find('h2', class_='typography_heading-xs__osRhC typography_appearance-default__t8iAq') else None,
 
-                'reviews': card.find('p', class_='typography_body-l__v5JLj typography_appearance-default__t8iAq').text.strip()
-                if card.find('p', class_='typography_body-l__v5JLj typography_appearance-default__t8iAq') else None,
+                'reviews': card.find('p', class_='CDS_Typography_appearance-default__dd9b51 CDS_Typography_prettyStyle__dd9b51 CDS_Typography_body-l__dd9b51').text.strip()
+                if card.find('p', class_='CDS_Typography_appearance-default__dd9b51 CDS_Typography_prettyStyle__dd9b51 CDS_Typography_body-l__dd9b51') else None,
 
                 'score_reviews': card.find('div', {'data-service-review-rating': True}).get('data-service-review-rating')
                 if card.find('div', {'data-service-review-rating': True}) else None,
@@ -158,11 +158,9 @@ def run_scraping_pipeline(df_companies):
 # === LANCEMENT DU SCRIPT ===
 if __name__ == '__main__':
 
-    nb_company = 5
-    df = pd.read_csv("data/raw/companies_links.csv").head(nb_company)
-    print(f"Taille de Companies_links.csv : {df.shape}")
+     nb_company = 5
+     df = pd.read_csv("data/raw/companies_links.csv").head(nb_company)
+     print(f"Taille de Companies_links.csv : {df.shape}")
 
-    raw_df, raw_filename, total_reviews, error_rate = run_scraping_pipeline(df_companies=df)
-    print(f"Taille du DataFrame final : {raw_df.shape}")
-    print(f"Fichier sauvegardé : {raw_filename}")
-    print(f"Taux d'erreur estimé : {error_rate:.2%}")
+     raw_df, raw_filename, total_reviews, error_rate = run_scraping_pipeline(df_companies=df)
+     print(raw_df['reviews'])

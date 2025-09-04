@@ -20,9 +20,10 @@ from models.train_model import main as train_main
 # --- Config ---
 INPUT_FOLDER = "/opt/airflow/data/raw"
 STATE_FILE = os.path.join(INPUT_FOLDER, "scrape_state.json")
-OUTPUT_FILE = os.path.join(INPUT_FOLDER, "concatenated_data.csv")
+OUTPUT_FILE = os.path.join(INPUT_FOLDER, "raw_data.csv")
 
-PROCESSED_FOLDER = "/opt/airflow/data/processed"
+#os.makedirs(os.path.join("/opt/airflow/data/", "processed"), exist_ok=True)
+PROCESSED_FOLDER = os.path.join("/opt/airflow/data/", "processed")
 PROCESSED_FILE = os.path.join(PROCESSED_FOLDER, "processed_data.csv")
 
 default_args = {
@@ -38,7 +39,7 @@ dag = DAG(
     'scrape_process_train_save',
     default_args=default_args,
     description='Scrape → concatenate → preprocess → train models',
-    schedule_interval='20 2 * * *',  # Tous les jours à 02:20 UTC  # '0 0 */2 * *',  # Tous les 2 jours
+    schedule_interval='0 0 */2 * *',  # Tous les jours à 02:20 UTC  # '0 0 */2 * *',  # Tous les 2 jours
     start_date=datetime(2025, 9, 1),
     catchup=False,
 )
