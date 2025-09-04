@@ -10,7 +10,8 @@ from bs4 import BeautifulSoup
 import pandas as pd
 from datetime import datetime
 import time
-
+import platform
+import os
 
 # === SETUP DRIVER ===
 def setup_driver():
@@ -19,7 +20,20 @@ def setup_driver():
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
 
-    service = Service(ChromeDriverManager().install())
+    system = platform.system()
+
+    if system == "Windows":
+        # Sur Windows, utiliser webdriver-manager pour télécharger automatiquement
+        driver_path = ChromeDriverManager().install()
+    else:
+        # Sur Linux/Docker Airflow
+        if os.path.exists("/usr/bin/chromedriver"):
+            # Utiliser le driver système installé via apt
+            driver_path = "/usr/bin/chromedriver"
+        else:
+            raise FileNotFoundError("Chromedriver introuvable sur le système Linux.")
+        
+    service = Service(driver_path)
     driver = webdriver.Chrome(service=service, options=options)
     return driver
 
@@ -52,7 +66,7 @@ def parse_reviews(html, company):
     reviews = []
     cards = soup.find_all('div', class_='styles_cardWrapper__g8amG styles_show__Z8n7u')
 
-    for card in cards[:5]:  # Limite à 5 avis par entreprise
+    for card in cards[:3]:  # Limite à 5 avis par entreprise
         try:
             review = {
                 'company': company,

@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 import pandas as pd
-from src.utils.helpers import clean_text, assign_label
+from ..utils.helpers import clean_text, assign_label
 
 
 def preprocess(in_csv: str, out_csv: str) -> None:

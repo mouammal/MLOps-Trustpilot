@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, f1_score, mean_absolute_error, root_mean_squared_error, r2_score
-from src.models.pipelines import build_label_pipeline, build_score_pipeline
+from .pipelines import build_label_pipeline, build_score_pipeline
 
 # Colonnes utiles du CSV
 TEXT_COL   = "clean_reviews"   # texte d'entrée
@@ -20,6 +20,7 @@ LABEL_OUT.mkdir(parents=True, exist_ok=True)
 SCORE_OUT.mkdir(parents=True, exist_ok=True)
 
 def main():
+
     df = pd.read_csv(DATA)
     for c in [TEXT_COL, LABEL_COL, SCORE_COL]:
         assert c in df.columns, f"Colonne manquante: {c}"
