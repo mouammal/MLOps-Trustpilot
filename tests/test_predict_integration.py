@@ -1,9 +1,9 @@
-# tests/test_predict_integration.py
 import os
 import pytest
 from fastapi.testclient import TestClient
 from sklearn.dummy import DummyClassifier, DummyRegressor
 from api.api import api
+from api.security.auth import get_current_user  # <- import direct
 
 # ----------------------------
 # Variables d'env (optionnelles)
@@ -19,9 +19,9 @@ CLIENT_PASSWORD = os.getenv("API_CLIENT_PASSWORD", "password")
 # ----------------------------
 @pytest.fixture(scope="module")
 def client():
-    api.router.on_startup = []  # désactiver le startup réel
+    api.router.on_startup = []  # désactiver startup réel
 
-    # Injecter des modèles Dummy pour bypasser le chargement réel
+    # Injecter des modèles Dummy
     api.state.label_model = DummyClassifier(strategy="constant", constant="Autre").fit(
         [["x"]], ["Autre"]
     )
@@ -29,8 +29,8 @@ def client():
         [[0]], [4.2]
     )
 
-    # Override get_current_user pour bypasser l'auth
-    api.dependency_overrides[api.security.auth.get_current_user] = lambda: {
+    # Override get_current_user
+    api.dependency_overrides[get_current_user] = lambda: {
         "username": "admin",
         "role": "admin",
     }
@@ -43,7 +43,7 @@ def client():
 
 
 # ----------------------------
-# Token factice (pas besoin de /token)
+# Token factice
 # ----------------------------
 def get_token(client, username, password):
     return "fake-token"
@@ -53,11 +53,9 @@ def get_token(client, username, password):
 # Tests d'intégration
 # ----------------------------
 def test_predict_endpoints_with_dummy_models(client):
-    # Utilisateur admin
     admin_token = get_token(client, ADMIN_USERNAME, "pass")
     h_admin = {"Authorization": f"Bearer {admin_token}"}
 
-    # Client simulé (on peut aussi override pour role "client" si nécessaire)
     client_token = get_token(client, CLIENT_USERNAME, "pass")
     h_client = {"Authorization": f"Bearer {client_token}"}
 
@@ -80,11 +78,10 @@ def test_predict_endpoints_with_dummy_models(client):
     assert r3.status_code == 200
     score = r3.json()["score"]
     assert isinstance(score, (int, float))
-    assert 0 <= score <= 5  # DummyRegressor constant=4.2
+    assert 0 <= score <= 5
 
     # Client → /predict-score FORBIDDEN
-    # Ici on override temporairement get_current_user pour role "client"
-    api.dependency_overrides[api.security.auth.get_current_user] = lambda: {
+    api.dependency_overrides[get_current_user] = lambda: {
         "username": "client",
         "role": "client",
     }
