@@ -1,9 +1,9 @@
 import sys
+import json
 import os
 from airflow import DAG
 from airflow.operators.python import PythonOperator 
 from datetime import datetime, timedelta
-import json
 import pandas as pd
 from data.scraping import run_scraping_pipeline
 from data.preprocess import preprocess
