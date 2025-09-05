@@ -6,19 +6,19 @@ def test_processed_data_exists():
     assert os.path.exists("data/processed/processed_data.csv"), "Le fichier de données traitées est manquant"
 
 def test_processed_data_columns():
-    df = pd.read_csv("data/processed/processed_data.csv")
+    df = pd.read_csv("data/processed/processed_data.csv",  low_memory=False)
     expected_cols = ["clean_reviews", "category", "score_reviews"]
     for col in expected_cols:
         assert col in df.columns, f"La colonne attendue '{col}' est absente"
 
 def test_no_missing_values():
-    df = pd.read_csv("data/processed/processed_data.csv")
+    df = pd.read_csv("data/processed/processed_data.csv",  low_memory=False)
     assert df["clean_reviews"].isnull().sum() == 0, "Des valeurs manquantes dans 'clean_reviews'"
     assert df["category"].isnull().sum() == 0, "Des valeurs manquantes dans 'category'"
     assert df["score_reviews"].isnull().sum() == 0, "Des valeurs manquantes dans 'score_reviews'"
 
 def test_text_cleaning():
-    df = pd.read_csv("data/processed/processed_data.csv")
+    df = pd.read_csv("data/processed/processed_data.csv",  low_memory=False)
     sample = df["clean_reviews"].dropna().sample(5, random_state=42)
     for text in sample:
         assert text == text.lower(), "Le texte n'est pas en minuscules"
@@ -26,10 +26,12 @@ def test_text_cleaning():
         assert not bool(re.search(r'[^\w\s]', text)), "Le texte contient des signes de ponctuation"
 
 def test_known_categories():
-    df = pd.read_csv("data/processed/processed_data.csv")
+    df = pd.read_csv("data/processed/processed_data.csv",  low_memory=False)
     known_categories = {
-        "Livraison", "Service Client", "Recommandation", 
-        "Qualité/Prix", "Satisfaction Générale", "Formation/Entreprise", "Autre"
+        "Livraison", "Service Client", "Recommandation",
+        "Qualité/Prix", "Satisfaction Générale", "Formation/Entreprise", "Autre",
+        "Hôtellerie / Hébergement", "Retour/Remboursement", "Disponibilité/Stock",
+        "Site Web/Expérience d’Achat", "Produit & Qualité/Prix", "Commande/Paiement"
     }
     unique_labels = set(df["category"].unique())
     assert unique_labels.issubset(known_categories), f"Des catégories inconnues sont présentes : {unique_labels - known_categories}"

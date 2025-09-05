@@ -54,7 +54,7 @@ def test_predict_endpoints_with_dummy_models(client):
     assert "label" in r1.json()
 
     # admin → /predict-label OK
-    r2 = client.post("/predict-label", json={"text": "ok"}, headers=h_admin)
+    r2 = client.post("/predict-label", json={"text": "okkk"}, headers=h_admin)
     assert r2.status_code == 200
 
     # admin → /predict-score OK

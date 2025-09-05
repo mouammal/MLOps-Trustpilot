@@ -93,7 +93,7 @@ def concatenate_files(**kwargs):
     for file in filenames:
         file_path = os.path.join(INPUT_FOLDER, file)
         if os.path.isfile(file_path):
-            df = pd.read_csv(file_path)
+            df = pd.read_csv(file_path, low_memory=False)
             all_data.append(df)
 
     if all_data:

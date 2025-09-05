@@ -16,9 +16,10 @@ import os
 # === SETUP DRIVER ===
 def setup_driver():
     options = Options()
-    options.add_argument('--headless')  # Décommente pour exécution sans interface graphique
+    options.add_argument('--headless=new') # Décommente pour exécution sans interface graphique
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
+    options.add_argument('--disable-gpu')
 
     system = platform.system()
 
@@ -45,17 +46,17 @@ def accept_cookies(driver):
             EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Accepter tous les cookies')]"))
         )
         accept_button.click()
-        time.sleep(0.5)
+        time.sleep(0.1)
     except Exception:
         pass
 
 def click_see_all_reviews(driver):
     try:
-        see_all_button = WebDriverWait(driver, 0.5).until(
+        see_all_button = WebDriverWait(driver, 0.2).until(
             EC.element_to_be_clickable((By.XPATH, "//span[contains(text(), 'Voir tous les avis')]"))
         )
         driver.execute_script("arguments[0].click();", see_all_button)
-        time.sleep(0.5)
+        time.sleep(0.1)
     except Exception as e:
         print(f"Le bouton 'Voir tous les avis' n'a pas été trouvé : {e}")
 
@@ -66,7 +67,7 @@ def parse_reviews(html, company):
     reviews = []
     cards = soup.find_all('div', class_='styles_cardWrapper__g8amG styles_show__Z8n7u')
 
-    for card in cards[:3]:  # Limite à 5 avis par entreprise
+    for card in cards[:5]:  # Limite à 5 avis par entreprise
         try:
             review = {
                 'company': company,
@@ -74,8 +75,9 @@ def parse_reviews(html, company):
                 'Id_reviews': card.find('span', {'data-consumer-name-typography': True}).text.strip()
                 if card.find('span', {'data-consumer-name-typography': True}) else None,
 
-                'title_reviews': card.find('h2', class_='typography_heading-xs__osRhC typography_appearance-default__t8iAq').text.strip()
-                if card.find('h2', class_='typography_heading-xs__osRhC typography_appearance-default__t8iAq') else None,
+                'title_reviews': card.find('h2', class_='CDS_Typography_appearance-default__dd9b51 CDS_Typography_prettyStyle__dd9b51 CDS_Typography_heading-xs__dd9b51').text.strip()
+                if card.find('h2', class_='CDS_Typography_appearance-default__dd9b51 CDS_Typography_prettyStyle__dd9b51 CDS_Typography_heading-xs__dd9b51') else None,
+                # CDS_Typography_appearance-default__dd9b51 CDS_Typography_prettyStyle__dd9b51 CDS_Typography_heading-xs__dd9b51
 
                 'reviews': card.find('p', class_='CDS_Typography_appearance-default__dd9b51 CDS_Typography_prettyStyle__dd9b51 CDS_Typography_body-l__dd9b51').text.strip()
                 if card.find('p', class_='CDS_Typography_appearance-default__dd9b51 CDS_Typography_prettyStyle__dd9b51 CDS_Typography_body-l__dd9b51') else None,
@@ -163,4 +165,4 @@ if __name__ == '__main__':
      print(f"Taille de Companies_links.csv : {df.shape}")
 
      raw_df, raw_filename, total_reviews, error_rate = run_scraping_pipeline(df_companies=df)
-     print(raw_df['reviews'])
+     print(raw_df['title_reviews'])

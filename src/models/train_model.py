@@ -21,7 +21,7 @@ SCORE_OUT.mkdir(parents=True, exist_ok=True)
 
 def main():
 
-    df = pd.read_csv(DATA)
+    df = pd.read_csv(DATA, low_memory=False)
     for c in [TEXT_COL, LABEL_COL, SCORE_COL]:
         assert c in df.columns, f"Colonne manquante: {c}"
 
@@ -40,7 +40,7 @@ def main():
         "f1_weighted": float(f1_score(y_te, y_pred, average="weighted")),
         "n_train": int(len(X_tr)), "n_test": int(len(X_te)),
     }
-    joblib.dump(label_pipe, LABEL_OUT / "model.joblib", compress=("xz", 3))
+    joblib.dump(label_pipe, LABEL_OUT / "model.joblib", compress=("gzip", 3)) # compress=("xz", 3)
     (LABEL_OUT / "metrics.json").write_text(json.dumps(metrics_label, indent=2))
 
     ###################
@@ -58,7 +58,7 @@ def main():
         "r2": float(r2_score(y_te, y_hat)),
         "n_train": int(len(X_tr)), "n_test": int(len(X_te)),
     }
-    joblib.dump(score_pipe, SCORE_OUT / "model.joblib", compress=("xz", 3))
+    joblib.dump(score_pipe, SCORE_OUT / "model.joblib", compress=("gzip", 3))
     (SCORE_OUT / "metrics.json").write_text(json.dumps(metrics_score, indent=2))
 
     print("Saved:", LABEL_OUT / "model.joblib", "|", SCORE_OUT / "model.joblib")

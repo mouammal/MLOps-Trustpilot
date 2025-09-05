@@ -15,8 +15,8 @@ from src.utils.logging import setup_logging, get_logger, log_event
 
 
 START_TS = time.time()
-LABEL_MODEL_PATH = os.getenv("LABEL_MODEL_PATH", "models/random_forest/model.pkl")
-SCORE_MODEL_PATH = os.getenv("SCORE_MODEL_PATH", "models/linear_regression/model.pkl")
+LABEL_MODEL_PATH = os.getenv("LABEL_MODEL_PATH", "models/random_forest/model.joblib")
+SCORE_MODEL_PATH = os.getenv("SCORE_MODEL_PATH", "models/linear_regression/model.joblib")
 
 REQ_COUNT = Counter("http_requests_total", "Total HTTP requests", ["method","endpoint","status"])
 REQ_LAT   = Histogram("http_request_duration_seconds", "Request latency (s)", ["endpoint"])

@@ -13,7 +13,7 @@ def preprocess(in_csv: str, out_csv: str) -> None:
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     print(f"[preprocess] Lecture: {in_path}")
-    df = pd.read_csv(in_path, sep=",", on_bad_lines="skip")
+    df = pd.read_csv(in_path, sep=",", on_bad_lines="skip", low_memory=False)
 
     # -- Colonnes à supprimer si présentes
     cols_to_drop = ["location", "Id_reviews", "published_date"]
