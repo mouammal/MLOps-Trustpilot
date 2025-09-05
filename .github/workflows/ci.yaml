@@ -30,7 +30,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt || true
-          pip install pytest ruff black dvc
+          pip install "apache-airflow==2.6.1" pytest ruff black dvc
+          mkdir -p airflow_home
+          export AIRFLOW_HOME=$(pwd)/airflow_home
+          airflow db init 
 
       - name: Lint (ruff)
         run: ruff check .
