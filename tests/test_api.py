@@ -24,13 +24,15 @@ skip_if_no_auth = pytest.mark.skipif(
 
 @pytest.fixture(scope="module")
 def client():
+    """
+    Fixture TestClient avec modèles Dummy injectés pour bypasser le besoin
+    de modèles réels sur le disque.
+    """
     # 1) Désactiver le startup qui chargerait les vrais artefacts
     api.router.on_startup = []
 
     # 2) Injecter des modèles déterministes (pas d'artefacts requis)
-    clf = DummyClassifier(strategy="constant", constant="positif").fit(
-        [["x"]], ["positif"]
-    )
+    clf = DummyClassifier(strategy="constant", constant="positif").fit([["x"]], ["positif"])
     reg = DummyRegressor(strategy="constant", constant=4.2).fit([[0]], [4.2])
     api.state.label_model = clf
     api.state.score_model = reg
@@ -41,7 +43,6 @@ def client():
 
 
 def test_health_live(client):
-    # On teste un endpoint public et léger pour vérifier que l'API "respire"
     r = client.get("/health/live")
     assert r.status_code == 200
     body = r.json()
@@ -91,7 +92,7 @@ def test_predict_score_admin_only(client):
     body = r.json()
     assert "score" in body
     assert isinstance(body["score"], (int, float))
-    # avec le DummyRegressor constant=4.2, la valeur doit être dans [0, 5] sans clip
+    # DummyRegressor constant=4.2 → valeur dans [0, 5] sans clip
     assert 0 <= body["score"] <= 5
 
 
