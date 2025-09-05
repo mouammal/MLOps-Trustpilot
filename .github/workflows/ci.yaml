@@ -8,6 +8,20 @@ on:
 jobs:
   build-test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: airflow
+          POSTGRES_PASSWORD: airflow
+          POSTGRES_DB: trustpilot_users
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U airflow -d trustpilot_users"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Checkout
@@ -54,6 +68,11 @@ jobs:
           API_ADMIN_PASSWORD: admin
           API_CLIENT_USERNAME: client
           API_CLIENT_PASSWORD: client
+          DB_NAME: trustpilot_users
+          DB_USER: airflow
+          DB_PASSWORD: airflow
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
           PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/src
         run: pytest -q
 

@@ -2,18 +2,20 @@
 import os
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import patch
 from sklearn.dummy import DummyClassifier, DummyRegressor
-
 from api.api import api
+from dotenv import load_dotenv
 
-# Récupérer les identifiants depuis l'environnement (CI ou .env)
+# Charger variables .env si présentes
+load_dotenv()
+
+# Récupérer identifiants depuis environnement (CI ou local)
 ADMIN_USERNAME = os.getenv("API_ADMIN_USERNAME", "admin")
-ADMIN_PASSWORD = os.getenv("API_ADMIN_PASSWORD", "admin")
+ADMIN_PASSWORD = os.getenv("API_ADMIN_PASSWORD", "adminpass")
 CLIENT_USERNAME = os.getenv("API_CLIENT_USERNAME", "client")
-CLIENT_PASSWORD = os.getenv("API_CLIENT_PASSWORD", "client")
+CLIENT_PASSWORD = os.getenv("API_CLIENT_PASSWORD", "clientpass")
 
-# Skip si les creds ne sont pas fournies (utile localement)
+# Skip tests si creds absentes
 SKIP_AUTH = not all([ADMIN_USERNAME, ADMIN_PASSWORD, CLIENT_USERNAME, CLIENT_PASSWORD])
 skip_if_no_auth = pytest.mark.skipif(
     SKIP_AUTH,
@@ -21,46 +23,23 @@ skip_if_no_auth = pytest.mark.skipif(
 )
 
 
-@pytest.fixture(scope="module", autouse=True)
-def mock_db_and_models():
-    # Mock DB auth
-    with patch("api.security.auth.get_user_from_db") as mock_get_user:
-
-        def _fake_get_user(username):
-            if username == ADMIN_USERNAME:
-                return {
-                    "username": ADMIN_USERNAME,
-                    "password": "$2b$12$fakehashedadmin",
-                    "role": "admin",
-                }
-            if username == CLIENT_USERNAME:
-                return {
-                    "username": CLIENT_USERNAME,
-                    "password": "$2b$12$fakehashedclient",
-                    "role": "client",
-                }
-            return None
-
-        mock_get_user.side_effect = _fake_get_user
-
-        # Injecter des modèles déterministes
-        api.state.label_model = DummyClassifier(
-            strategy="constant", constant="Autre"
-        ).fit([["x"]], ["Autre"])
-        api.state.score_model = DummyRegressor(strategy="constant", constant=4.2).fit(
-            [[0]], [4.2]
-        )
-
-        yield
-
-
-@pytest.fixture
+# Fixture client FastAPI
+@pytest.fixture(scope="module")
 def client():
-    return TestClient(api)
+    # Injecter dummy models (pas besoin de vrais artefacts ML)
+    api.state.label_model = DummyClassifier(strategy="constant", constant="Autre").fit(
+        [["x"]], ["Autre"]
+    )
+    api.state.score_model = DummyRegressor(strategy="constant", constant=4.2).fit(
+        [[0]], [4.2]
+    )
+
+    with TestClient(api) as c:
+        yield c
 
 
+# Helper pour obtenir token via /token
 def get_token(client, username, password):
-    """Helper pour obtenir un token via /token"""
     r = client.post(
         "/token",
         data={"username": username, "password": password},
@@ -71,7 +50,7 @@ def get_token(client, username, password):
 
 
 # -------------------------
-# Tests intégration endpoints
+# Tests endpoints intégration
 # -------------------------
 
 
