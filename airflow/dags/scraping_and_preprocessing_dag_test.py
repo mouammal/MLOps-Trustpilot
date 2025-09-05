@@ -1,10 +1,12 @@
+import json
 import os
 import sys
-import json
+
 from airflow import DAG
 from airflow.operators.python import PythonOperator 
 from datetime import datetime, timedelta
 import pandas as pd
+
 from data.scraping import run_scraping_pipeline
 from data.preprocess import preprocess
 

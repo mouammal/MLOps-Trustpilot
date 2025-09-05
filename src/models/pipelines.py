@@ -1,8 +1,8 @@
 from __future__ import annotations
-from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import Ridge 
+from sklearn.linear_model import Ridge
+from sklearn.pipeline import Pipeline
 import numpy as np
 
 def build_label_pipeline() -> Pipeline:
