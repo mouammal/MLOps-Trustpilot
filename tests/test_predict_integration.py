@@ -3,7 +3,6 @@ import os
 import pytest
 from fastapi.testclient import TestClient
 from sklearn.dummy import DummyClassifier, DummyRegressor
-from unittest.mock import patch
 from api.api import api
 
 # ----------------------------
@@ -20,36 +19,33 @@ CLIENT_PASSWORD = os.getenv("API_CLIENT_PASSWORD", "password")
 # ----------------------------
 @pytest.fixture(scope="module")
 def client():
-    api.router.on_startup = []  # désactiver startup
-    # Modèles dummy
+    api.router.on_startup = []  # désactiver le startup réel
+
+    # Injecter des modèles Dummy pour bypasser le chargement réel
     api.state.label_model = DummyClassifier(strategy="constant", constant="Autre").fit(
         [["x"]], ["Autre"]
     )
     api.state.score_model = DummyRegressor(strategy="constant", constant=4.2).fit(
         [[0]], [4.2]
     )
+
+    # Override get_current_user pour bypasser l'auth
+    api.dependency_overrides[api.security.auth.get_current_user] = lambda: {
+        "username": "admin",
+        "role": "admin",
+    }
+
     with TestClient(api) as c:
         yield c
 
+    # Nettoyer après test
+    api.dependency_overrides = {}
+
 
 # ----------------------------
-# Mock DB / auth
+# Token factice (pas besoin de /token)
 # ----------------------------
-@pytest.fixture(autouse=True)
-def mock_db_auth():
-    """Bypass PostgreSQL pour /token."""
-    with patch("api.security.auth.get_user_from_db") as mock_user:
-        # On renvoie un user générique pour admin et client
-        mock_user.side_effect = lambda username: {
-            "username": username,
-            "hashed_password": "fakehash",
-            "role": "admin" if username == ADMIN_USERNAME else "client",
-        }
-        yield
-
-
 def get_token(client, username, password):
-    """Token factice pour bypass /token"""
     return "fake-token"
 
 
@@ -57,10 +53,12 @@ def get_token(client, username, password):
 # Tests d'intégration
 # ----------------------------
 def test_predict_endpoints_with_dummy_models(client):
+    # Utilisateur admin
     admin_token = get_token(client, ADMIN_USERNAME, "pass")
-    client_token = get_token(client, CLIENT_USERNAME, "pass")
-
     h_admin = {"Authorization": f"Bearer {admin_token}"}
+
+    # Client simulé (on peut aussi override pour role "client" si nécessaire)
+    client_token = get_token(client, CLIENT_USERNAME, "pass")
     h_client = {"Authorization": f"Bearer {client_token}"}
 
     # Client → /predict-label OK
@@ -85,5 +83,10 @@ def test_predict_endpoints_with_dummy_models(client):
     assert 0 <= score <= 5  # DummyRegressor constant=4.2
 
     # Client → /predict-score FORBIDDEN
+    # Ici on override temporairement get_current_user pour role "client"
+    api.dependency_overrides[api.security.auth.get_current_user] = lambda: {
+        "username": "client",
+        "role": "client",
+    }
     r4 = client.post("/predict-score", json={"text": "x"}, headers=h_client)
     assert r4.status_code == 403
