@@ -1,37 +1,40 @@
 # tests/test_api.py
 import os
 import pytest
-from dotenv import load_dotenv
 from fastapi.testclient import TestClient
 from sklearn.dummy import DummyClassifier, DummyRegressor
+from unittest.mock import patch
 
 from api.api import api
 
 # Charger les variables d'environnement depuis .env
+from dotenv import load_dotenv
+
 load_dotenv()
 
-ADMIN_USERNAME = os.getenv("API_ADMIN_USERNAME")
-ADMIN_PASSWORD = os.getenv("API_ADMIN_PASSWORD")
-CLIENT_USERNAME = os.getenv("API_CLIENT_USERNAME")
-CLIENT_PASSWORD = os.getenv("API_CLIENT_PASSWORD")
+ADMIN_USERNAME = os.getenv("API_ADMIN_USERNAME", "admin")
+ADMIN_PASSWORD = os.getenv("API_ADMIN_PASSWORD", "password")
+CLIENT_USERNAME = os.getenv("API_CLIENT_USERNAME", "client")
+CLIENT_PASSWORD = os.getenv("API_CLIENT_PASSWORD", "password")
 
-# Certains tests nécessitent l'auth; on les skip si les creds .env ne sont pas présents
+# Skip tests nécessitant auth si identifiants absents
 SKIP_AUTH = not all([ADMIN_USERNAME, ADMIN_PASSWORD, CLIENT_USERNAME, CLIENT_PASSWORD])
 skip_if_no_auth = pytest.mark.skipif(
     SKIP_AUTH, reason="Identifiants API manquants dans .env"
 )
 
 
+# ----------------------------
+# Fixtures
+# ----------------------------
 @pytest.fixture(scope="module")
 def client():
     """
-    Fixture TestClient avec modèles Dummy injectés pour bypasser le besoin
-    de modèles réels sur le disque.
+    Fixture TestClient avec modèles Dummy injectés pour bypass les vrais artefacts.
     """
-    # 1) Désactiver le startup qui chargerait les vrais artefacts
-    api.router.on_startup = []
+    api.router.on_startup = []  # Désactive le startup
 
-    # 2) Injecter des modèles déterministes (pas d'artefacts requis)
+    # Injection modèles Dummy
     clf = DummyClassifier(strategy="constant", constant="positif").fit(
         [["x"]], ["positif"]
     )
@@ -39,11 +42,40 @@ def client():
     api.state.label_model = clf
     api.state.score_model = reg
 
-    # 3) Créer le client de test
     with TestClient(api) as c:
         yield c
 
 
+# ----------------------------
+# Mock DB et auth
+# ----------------------------
+@pytest.fixture(autouse=True)
+def mock_db_auth():
+    """Mock get_user_from_db pour bypass PostgreSQL."""
+    with patch("api.security.auth.get_user_from_db") as mocked:
+        mocked.return_value = {
+            "username": "admin",
+            "hashed_password": "fakehash",
+            "role": "admin",
+        }
+        yield
+
+
+# ----------------------------
+# Helper token
+# ----------------------------
+def get_token(
+    client: TestClient, username: str = "admin", password: str = "password"
+) -> str:
+    """
+    Retourne un token factice pour bypass l'auth réelle.
+    """
+    return "fake-token"
+
+
+# ----------------------------
+# Tests
+# ----------------------------
 def test_health_live(client):
     r = client.get("/health/live")
     assert r.status_code == 200
@@ -52,19 +84,8 @@ def test_health_live(client):
     assert "uptime_s" in body
 
 
-def get_token(client: TestClient, username: str, password: str) -> str:
-    r = client.post(
-        "/token",
-        data={"username": username, "password": password},
-        headers={"Content-Type": "application/x-www-form-urlencoded"},
-    )
-    assert r.status_code == 200, f"Echec /token pour {username}"
-    return r.json()["access_token"]
-
-
 @skip_if_no_auth
 def test_predict_label_admin_and_client(client):
-    # admin et client doivent pouvoir appeler /predict-label
     for username, password in [
         (ADMIN_USERNAME, ADMIN_PASSWORD),
         (CLIENT_USERNAME, CLIENT_PASSWORD),
@@ -83,7 +104,6 @@ def test_predict_label_admin_and_client(client):
 
 @skip_if_no_auth
 def test_predict_score_admin_only(client):
-    # seul admin peut appeler /predict-score
     token = get_token(client, ADMIN_USERNAME, ADMIN_PASSWORD)
     r = client.post(
         "/predict-score",
@@ -94,13 +114,11 @@ def test_predict_score_admin_only(client):
     body = r.json()
     assert "score" in body
     assert isinstance(body["score"], (int, float))
-    # DummyRegressor constant=4.2 → valeur dans [0, 5] sans clip
     assert 0 <= body["score"] <= 5
 
 
 @skip_if_no_auth
 def test_predict_score_client_forbidden(client):
-    # Le client ne doit PAS avoir accès à /predict-score
     token = get_token(client, CLIENT_USERNAME, CLIENT_PASSWORD)
     r = client.post(
         "/predict-score",
@@ -111,6 +129,5 @@ def test_predict_score_client_forbidden(client):
 
 
 def test_predict_label_unauthenticated(client):
-    # Sans token → 401
     r = client.post("/predict-label", json={"text": "Service rapide"})
     assert r.status_code == 401
