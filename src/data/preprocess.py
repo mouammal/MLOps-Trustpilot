@@ -17,7 +17,11 @@ def preprocess(in_csv: str, out_csv: str) -> None:
 
     # -- Colonnes à supprimer si présentes
     cols_to_drop = ["location", "Id_reviews", "published_date"]
-    df.drop(columns=[c for c in cols_to_drop if c in df.columns], inplace=True, errors="ignore")
+    df.drop(
+        columns=[c for c in cols_to_drop if c in df.columns],
+        inplace=True,
+        errors="ignore",
+    )
 
     # -- Fusion title_reviews -> reviews (si dispo)
     if "reviews" not in df.columns:

@@ -3,7 +3,7 @@ import os
 import sys
 
 from airflow import DAG
-from airflow.operators.python import PythonOperator 
+from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
 import pandas as pd
 
@@ -25,22 +25,23 @@ PROCESSED_FOLDER = "/opt/airflow/data/processed"
 PROCESSED_FILE = os.path.join(PROCESSED_FOLDER, "processed_data.csv")
 
 default_args = {
-    'owner': 'airflow',
-    'depends_on_past': False,
-    'email_on_failure': False,
-    'email_on_retry': False,
-    'retries': 1,
-    'retry_delay': timedelta(minutes=5),
+    "owner": "airflow",
+    "depends_on_past": False,
+    "email_on_failure": False,
+    "email_on_retry": False,
+    "retries": 1,
+    "retry_delay": timedelta(minutes=5),
 }
 
 dag = DAG(
-    'scraping_and_preprocessing',
+    "scraping_and_preprocessing",
     default_args=default_args,
-    description='Scrape daily and concatenate after 3 runs and process',
-    schedule_interval='0 0 */2 * *',  # daily for testing, adjust as needed
+    description="Scrape daily and concatenate after 3 runs and process",
+    schedule_interval="0 0 */2 * *",  # daily for testing, adjust as needed
     start_date=datetime(2025, 9, 1),
     catchup=False,
 )
+
 
 def load_state():
     if os.path.exists(STATE_FILE):
@@ -48,6 +49,7 @@ def load_state():
             return json.load(f)
     else:
         return {"counter": 0, "files": []}
+
 
 def save_state(state):
     with open(STATE_FILE, "w") as f:
@@ -57,7 +59,7 @@ def save_state(state):
 # --- Task 1: Scraping ---
 def scrape_one_day(**kwargs):
     state = load_state()
-    df_companies = pd.read_csv(os.path.join(INPUT_FOLDER,"companies_links.csv"))
+    df_companies = pd.read_csv(os.path.join(INPUT_FOLDER, "companies_links.csv"))
 
     _, raw_filename, total_reviews, error_rate = run_scraping_pipeline(df_companies)
 
@@ -72,7 +74,9 @@ def scrape_one_day(**kwargs):
     state["files"].append(new_filename)
     save_state(state)
 
-    print(f"Scrape run #{state['counter']} done. File: {new_filename}, total reviews: {total_reviews}, error rate: {error_rate:.2%}")
+    print(
+        f"Scrape run #{state['counter']} done. File: {new_filename}, total reviews: {total_reviews}, error rate: {error_rate:.2%}"
+    )
 
 
 # --- Task 2: Concaténation ---
@@ -88,7 +92,9 @@ def concatenate_files(**kwargs):
 
     # If no files in state (manual test), scan folder
     if not filenames:
-        filenames = [f for f in os.listdir(INPUT_FOLDER) if f.startswith("trustpilot_data_raw_")]
+        filenames = [
+            f for f in os.listdir(INPUT_FOLDER) if f.startswith("trustpilot_data_raw_")
+        ]
 
     all_data = []
     for file in filenames:
@@ -100,7 +106,9 @@ def concatenate_files(**kwargs):
     if all_data:
         concatenated_df = pd.concat(all_data, ignore_index=True).drop_duplicates()
         concatenated_df.to_csv(OUTPUT_FILE, index=False)
-        print(f"Concatenated data saved to {OUTPUT_FILE} with {len(concatenated_df)} rows.")
+        print(
+            f"Concatenated data saved to {OUTPUT_FILE} with {len(concatenated_df)} rows."
+        )
 
         # --- Reset state ---
         save_state({"counter": 0, "files": []})
@@ -122,21 +130,21 @@ def preprocess_data(**kwargs):
 
 # --- Airflow tasks ---
 scrape_task = PythonOperator(
-    task_id='scrape_one_day',
+    task_id="scrape_one_day",
     python_callable=scrape_one_day,
     provide_context=True,
     dag=dag,
 )
 
 concat_task = PythonOperator(
-    task_id='concatenate_files',
+    task_id="concatenate_files",
     python_callable=concatenate_files,
     provide_context=True,
     dag=dag,
 )
 
 preprocess_task = PythonOperator(
-    task_id='preprocess_data',
+    task_id="preprocess_data",
     python_callable=preprocess_data,
     provide_context=True,
     dag=dag,

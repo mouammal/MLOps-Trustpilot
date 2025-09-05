@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from fastapi.testclient import TestClient
 from sklearn.dummy import DummyClassifier, DummyRegressor
 
-from api.api import api  
+from api.api import api
 
 # Charger les variables d'environnement depuis .env
 load_dotenv()
@@ -17,7 +17,10 @@ CLIENT_PASSWORD = os.getenv("API_CLIENT_PASSWORD")
 
 # Certains tests nécessitent l'auth; on les skip si les creds .env ne sont pas présents
 SKIP_AUTH = not all([ADMIN_USERNAME, ADMIN_PASSWORD, CLIENT_USERNAME, CLIENT_PASSWORD])
-skip_if_no_auth = pytest.mark.skipif(SKIP_AUTH, reason="Identifiants API manquants dans .env")
+skip_if_no_auth = pytest.mark.skipif(
+    SKIP_AUTH, reason="Identifiants API manquants dans .env"
+)
+
 
 @pytest.fixture(scope="module")
 def client():
@@ -25,7 +28,9 @@ def client():
     api.router.on_startup = []
 
     # 2) Injecter des modèles déterministes (pas d'artefacts requis)
-    clf = DummyClassifier(strategy="constant", constant="positif").fit([["x"]], ["positif"])
+    clf = DummyClassifier(strategy="constant", constant="positif").fit(
+        [["x"]], ["positif"]
+    )
     reg = DummyRegressor(strategy="constant", constant=4.2).fit([[0]], [4.2])
     api.state.label_model = clf
     api.state.score_model = reg
@@ -57,7 +62,10 @@ def get_token(client: TestClient, username: str, password: str) -> str:
 @skip_if_no_auth
 def test_predict_label_admin_and_client(client):
     # admin et client doivent pouvoir appeler /predict-label
-    for username, password in [(ADMIN_USERNAME, ADMIN_PASSWORD), (CLIENT_USERNAME, CLIENT_PASSWORD)]:
+    for username, password in [
+        (ADMIN_USERNAME, ADMIN_PASSWORD),
+        (CLIENT_USERNAME, CLIENT_PASSWORD),
+    ]:
         token = get_token(client, username, password)
         r = client.post(
             "/predict-label",

@@ -13,13 +13,16 @@ import time
 import platform
 import os
 
+
 # === SETUP DRIVER ===
 def setup_driver():
     options = Options()
-    options.add_argument('--headless=new') # Décommente pour exécution sans interface graphique
-    options.add_argument('--no-sandbox')
-    options.add_argument('--disable-dev-shm-usage')
-    options.add_argument('--disable-gpu')
+    options.add_argument(
+        "--headless=new"
+    )  # Décommente pour exécution sans interface graphique
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-gpu")
 
     system = platform.system()
 
@@ -33,7 +36,7 @@ def setup_driver():
             driver_path = "/usr/bin/chromedriver"
         else:
             raise FileNotFoundError("Chromedriver introuvable sur le système Linux.")
-        
+
     service = Service(driver_path)
     driver = webdriver.Chrome(service=service, options=options)
     return driver
@@ -43,17 +46,22 @@ def setup_driver():
 def accept_cookies(driver):
     try:
         accept_button = WebDriverWait(driver, 0.2).until(
-            EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Accepter tous les cookies')]"))
+            EC.element_to_be_clickable(
+                (By.XPATH, "//button[contains(text(), 'Accepter tous les cookies')]")
+            )
         )
         accept_button.click()
         time.sleep(0.1)
     except Exception:
         pass
 
+
 def click_see_all_reviews(driver):
     try:
         see_all_button = WebDriverWait(driver, 0.2).until(
-            EC.element_to_be_clickable((By.XPATH, "//span[contains(text(), 'Voir tous les avis')]"))
+            EC.element_to_be_clickable(
+                (By.XPATH, "//span[contains(text(), 'Voir tous les avis')]")
+            )
         )
         driver.execute_script("arguments[0].click();", see_all_button)
         time.sleep(0.1)
@@ -63,29 +71,54 @@ def click_see_all_reviews(driver):
 
 # === PARSING ===
 def parse_reviews(html, company):
-    soup = BeautifulSoup(html, 'html.parser')
+    soup = BeautifulSoup(html, "html.parser")
     reviews = []
-    cards = soup.find_all('div', class_='styles_cardWrapper__g8amG styles_show__Z8n7u')
+    cards = soup.find_all("div", class_="styles_cardWrapper__g8amG styles_show__Z8n7u")
 
     for card in cards[:5]:  # Limite à 5 avis par entreprise
         try:
             review = {
-                'company': company,
-
-                'Id_reviews': card.find('span', {'data-consumer-name-typography': True}).text.strip()
-                if card.find('span', {'data-consumer-name-typography': True}) else None,
-
-                'title_reviews': card.find('h2', class_='CDS_Typography_appearance-default__dd9b51 CDS_Typography_prettyStyle__dd9b51 CDS_Typography_heading-xs__dd9b51').text.strip()
-                if card.find('h2', class_='CDS_Typography_appearance-default__dd9b51 CDS_Typography_prettyStyle__dd9b51 CDS_Typography_heading-xs__dd9b51') else None,
+                "company": company,
+                "Id_reviews": (
+                    card.find(
+                        "span", {"data-consumer-name-typography": True}
+                    ).text.strip()
+                    if card.find("span", {"data-consumer-name-typography": True})
+                    else None
+                ),
+                "title_reviews": (
+                    card.find(
+                        "h2",
+                        class_="CDS_Typography_appearance-default__dd9b51 CDS_Typography_prettyStyle__dd9b51 CDS_Typography_heading-xs__dd9b51",
+                    ).text.strip()
+                    if card.find(
+                        "h2",
+                        class_="CDS_Typography_appearance-default__dd9b51 CDS_Typography_prettyStyle__dd9b51 CDS_Typography_heading-xs__dd9b51",
+                    )
+                    else None
+                ),
                 # CDS_Typography_appearance-default__dd9b51 CDS_Typography_prettyStyle__dd9b51 CDS_Typography_heading-xs__dd9b51
-
-                'reviews': card.find('p', class_='CDS_Typography_appearance-default__dd9b51 CDS_Typography_prettyStyle__dd9b51 CDS_Typography_body-l__dd9b51').text.strip()
-                if card.find('p', class_='CDS_Typography_appearance-default__dd9b51 CDS_Typography_prettyStyle__dd9b51 CDS_Typography_body-l__dd9b51') else None,
-
-                'score_reviews': card.find('div', {'data-service-review-rating': True}).get('data-service-review-rating')
-                if card.find('div', {'data-service-review-rating': True}) else None,
-
-                'published_date': card.find('time').get('datetime') if card.find('time') else None
+                "reviews": (
+                    card.find(
+                        "p",
+                        class_="CDS_Typography_appearance-default__dd9b51 CDS_Typography_prettyStyle__dd9b51 CDS_Typography_body-l__dd9b51",
+                    ).text.strip()
+                    if card.find(
+                        "p",
+                        class_="CDS_Typography_appearance-default__dd9b51 CDS_Typography_prettyStyle__dd9b51 CDS_Typography_body-l__dd9b51",
+                    )
+                    else None
+                ),
+                "score_reviews": (
+                    card.find("div", {"data-service-review-rating": True}).get(
+                        "data-service-review-rating"
+                    )
+                    if card.find("div", {"data-service-review-rating": True})
+                    else None
+                ),
+                "published_date": (
+                    card.find("time").get("datetime") if card.find("time") else None
+                ),
             }
             reviews.append(review)
         except Exception as e:
@@ -125,11 +158,11 @@ def save_reviews_to_csv(df, date_str):
 def run_scraping_pipeline(df_companies):
     all_reviews = []
     driver = setup_driver()
-    print('\n[PIPELINE SCRAPING] Démarrage du scraping des avis Trustpilot')
+    print("\n[PIPELINE SCRAPING] Démarrage du scraping des avis Trustpilot")
 
     for _, row in df_companies.iterrows():
-        company = row['company']
-        url = row['href_company']
+        company = row["company"]
+        url = row["href_company"]
         print(f"Scraping de {company} ({url})")
 
         reviews = scrape_company_reviews(driver, company, url)
@@ -143,10 +176,12 @@ def run_scraping_pipeline(df_companies):
     driver.quit()
 
     df_reviews = pd.DataFrame(all_reviews)
-    trustpilot_raw_df = pd.merge(df_companies, df_reviews, on='company', how='inner')
-    trustpilot_raw_df = trustpilot_raw_df.drop(columns=['href_company', 'sub_category', 'website'], errors='ignore')
+    trustpilot_raw_df = pd.merge(df_companies, df_reviews, on="company", how="inner")
+    trustpilot_raw_df = trustpilot_raw_df.drop(
+        columns=["href_company", "sub_category", "website"], errors="ignore"
+    )
 
-    today = datetime.now().strftime('%Y-%m-%d')
+    today = datetime.now().strftime("%Y-%m-%d")
     filename = save_reviews_to_csv(trustpilot_raw_df, today)
 
     total_reviews = len(df_reviews)
@@ -158,11 +193,13 @@ def run_scraping_pipeline(df_companies):
 
 
 # === LANCEMENT DU SCRIPT ===
-if __name__ == '__main__':
+if __name__ == "__main__":
 
-     nb_company = 5
-     df = pd.read_csv("data/raw/companies_links.csv").head(nb_company)
-     print(f"Taille de Companies_links.csv : {df.shape}")
+    nb_company = 5
+    df = pd.read_csv("data/raw/companies_links.csv").head(nb_company)
+    print(f"Taille de Companies_links.csv : {df.shape}")
 
-     raw_df, raw_filename, total_reviews, error_rate = run_scraping_pipeline(df_companies=df)
-     print(raw_df['title_reviews'])
+    raw_df, raw_filename, total_reviews, error_rate = run_scraping_pipeline(
+        df_companies=df
+    )
+    print(raw_df["title_reviews"])

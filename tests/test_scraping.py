@@ -1,5 +1,5 @@
 from src.data import scraping
-import pandas as pd 
+import pandas as pd
 
 """ def test_parse_reviews_simple():
     # HTML minimal simulé avec 1 avis
@@ -56,13 +56,10 @@ def test_parse_reviews_live():
     assert "published_date" in first_review
 
 
-
 def test_save_reviews_to_csv_creates_filename(tmp_path):
     import pandas as pd
-    df = pd.DataFrame({
-        'company': ['A'],
-        'review': ['good']
-    })
+
+    df = pd.DataFrame({"company": ["A"], "review": ["good"]})
     date_str = "2025-08-12"
     saved_filename = scraping.save_reviews_to_csv(df, date_str)
     assert saved_filename == f"data/raw/trustpilot_data_raw_{date_str}.csv"

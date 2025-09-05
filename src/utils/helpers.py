@@ -3,6 +3,7 @@
 import re
 from config import CUSTOM_STOPWORDS, CATEGORIES
 
+
 def clean_text(text: str) -> str:
     """
     Nettoie un texte en supprimant :
@@ -12,9 +13,9 @@ def clean_text(text: str) -> str:
     - Les stopwords définis dans le projet
     """
     text = text.lower()
-    text = re.sub(r'\d+', ' ', text)  # Supprimer les chiffres
-    text = re.sub(r'[^\w\s]', ' ', text)  # Supprimer la ponctuation
-    text = ' '.join(word for word in text.split() if word not in CUSTOM_STOPWORDS)
+    text = re.sub(r"\d+", " ", text)  # Supprimer les chiffres
+    text = re.sub(r"[^\w\s]", " ", text)  # Supprimer la ponctuation
+    text = " ".join(word for word in text.split() if word not in CUSTOM_STOPWORDS)
     return text
 
 
