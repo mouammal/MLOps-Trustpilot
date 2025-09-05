@@ -1,61 +1,53 @@
-# tests/test_api.py
-import os
 import pytest
 from fastapi.testclient import TestClient
-from sklearn.dummy import DummyClassifier, DummyRegressor
 from unittest.mock import patch
-from api.api import api
+from api.api import app
+from sklearn.dummy import DummyClassifier, DummyRegressor
 
-# ----------------------------
-# Variables d'env
-# ----------------------------
-ADMIN_USERNAME = os.getenv("API_ADMIN_USERNAME", "admin")
-ADMIN_PASSWORD = os.getenv("API_ADMIN_PASSWORD", "adminpass")
-CLIENT_USERNAME = os.getenv("API_CLIENT_USERNAME", "client")
-CLIENT_PASSWORD = os.getenv("API_CLIENT_PASSWORD", "clientpass")
+ADMIN_USERNAME = "admin"
+ADMIN_PASSWORD = "adminpass"
+CLIENT_USERNAME = "client"
+CLIENT_PASSWORD = "clientpass"
 
 
-# ----------------------------
-# Fixture client
-# ----------------------------
-@pytest.fixture(scope="module")
-def client():
-    # Désactiver startup réel
-    api.router.on_startup = []
-
-    # Injecter des modèles Dummy
-    api.state.label_model = DummyClassifier(strategy="constant", constant="Autre").fit(
-        [["x"]], ["Autre"]
-    )
-    api.state.score_model = DummyRegressor(strategy="constant", constant=4.2).fit(
-        [[0]], [4.2]
-    )
-
-    with TestClient(api) as c:
-        yield c
-
-
-# ----------------------------
-# Mock authenticate_user pour bypass mot de passe
-# ----------------------------
 @pytest.fixture(autouse=True)
-def mock_auth():
-    with patch("api.security.auth.authenticate_user") as mock_auth_fn:
+def mock_db_auth_and_models():
+    # Mock DB auth
+    with patch("api.security.auth.get_user_from_db") as mock_get_user:
 
-        def _fake_auth(username, password):
+        def _fake_get_user(username):
             if username == ADMIN_USERNAME:
-                return {"username": ADMIN_USERNAME, "role": "admin"}
+                return {
+                    "username": ADMIN_USERNAME,
+                    "password": "$2b$12$fakehashedadmin",
+                    "role": "admin",
+                }
             if username == CLIENT_USERNAME:
-                return {"username": CLIENT_USERNAME, "role": "client"}
-            return False
+                return {
+                    "username": CLIENT_USERNAME,
+                    "password": "$2b$12$fakehashedclient",
+                    "role": "client",
+                }
+            return None
 
-        mock_auth_fn.side_effect = _fake_auth
+        mock_get_user.side_effect = _fake_get_user
+
+        # Inject dummy models
+        app.state.label_model = DummyClassifier(
+            strategy="constant", constant="Autre"
+        ).fit([["x"]], ["Autre"])
+        app.state.score_model = DummyRegressor(strategy="constant", constant=4.2).fit(
+            [[0]], [4.2]
+        )
+
         yield
 
 
-# ----------------------------
-# Helper pour token via /token
-# ----------------------------
+@pytest.fixture
+def client():
+    return TestClient(app)
+
+
 def get_token(client, username, password):
     r = client.post(
         "/token",
@@ -66,43 +58,44 @@ def get_token(client, username, password):
     return r.json()["access_token"]
 
 
-# ----------------------------
-# Tests
-# ----------------------------
 def test_predict_label_admin_and_client(client):
-    for username, password in [
-        (ADMIN_USERNAME, ADMIN_PASSWORD),
-        (CLIENT_USERNAME, CLIENT_PASSWORD),
-    ]:
-        token = get_token(client, username, password)
-        r = client.post(
-            "/predict-label",
-            json={"text": "Service rapide"},
-            headers={"Authorization": f"Bearer {token}"},
-        )
-        assert r.status_code == 200
-        assert "label" in r.json()
+    admin_token = get_token(client, ADMIN_USERNAME, ADMIN_PASSWORD)
+    client_token = get_token(client, CLIENT_USERNAME, CLIENT_PASSWORD)
+
+    r_admin = client.post(
+        "/predict-label",
+        json={"text": "Produit excellent"},
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert r_admin.status_code == 200
+    assert r_admin.json()["label"] == "Autre"
+
+    r_client = client.post(
+        "/predict-label",
+        json={"text": "Produit excellent"},
+        headers={"Authorization": f"Bearer {client_token}"},
+    )
+    assert r_client.status_code == 200
+    assert r_client.json()["label"] == "Autre"
 
 
 def test_predict_score_admin_only(client):
-    token = get_token(client, ADMIN_USERNAME, ADMIN_PASSWORD)
+    admin_token = get_token(client, ADMIN_USERNAME, ADMIN_PASSWORD)
     r = client.post(
         "/predict-score",
         json={"text": "Produit excellent"},
-        headers={"Authorization": f"Bearer {token}"},
+        headers={"Authorization": f"Bearer {admin_token}"},
     )
     assert r.status_code == 200
-    score = r.json()["score"]
-    assert isinstance(score, (int, float))
-    assert 0 <= score <= 5
+    assert r.json()["score"] == 4.2
 
 
 def test_predict_score_client_forbidden(client):
-    token = get_token(client, CLIENT_USERNAME, CLIENT_PASSWORD)
+    client_token = get_token(client, CLIENT_USERNAME, CLIENT_PASSWORD)
     r = client.post(
         "/predict-score",
         json={"text": "Produit excellent"},
-        headers={"Authorization": f"Bearer {token}"},
+        headers={"Authorization": f"Bearer {client_token}"},
     )
     assert r.status_code == 403
 
