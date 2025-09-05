@@ -54,7 +54,7 @@ jobs:
           API_ADMIN_PASSWORD: admin
           API_CLIENT_USERNAME: client
           API_CLIENT_PASSWORD: client
-          PYTHONPATH: ${{ github.workspace }}
+          PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/src
         run: pytest -q
 
       - name: DVC repro (if present)
