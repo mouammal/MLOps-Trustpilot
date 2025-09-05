@@ -1,17 +1,15 @@
 import sys
 import os
+import json
+from airflow import DAG
+from airflow.operators.python import PythonOperator 
+from datetime import datetime, timedelta
+import pandas as pd
 
 # Ensure src is in Python path
 SRC_PATH = "/opt/airflow/src"
 if SRC_PATH not in sys.path:
     sys.path.insert(0, SRC_PATH)
-
-from airflow import DAG
-from airflow.operators.python import PythonOperator 
-from datetime import datetime, timedelta
-import pandas as pd
-from pathlib import Path
-import json
 
 from data.scraping import run_scraping_pipeline
 from data.preprocess import preprocess

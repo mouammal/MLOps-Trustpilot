@@ -5,10 +5,15 @@ from api.schemas import PredictText, PredictLabelResponse, PredictScoreResponse
 from api.security.permissions import require_role
 from fastapi.security import OAuth2PasswordRequestForm
 from api.security.auth import authenticate_user, create_access_token
-
-import time, hashlib, os, platform, uuid
+import time 
+import hashlib 
+import os 
+import platform 
+import uuid
 from pathlib import Path
-import sklearn, fastapi, joblib
+import sklearn 
+import fastapi 
+import joblib
 from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
 
 from src.utils.logging import setup_logging, get_logger, log_event

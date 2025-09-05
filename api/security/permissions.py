@@ -1,6 +1,5 @@
 # Rôles, scopes, accès restreint
 from fastapi import Depends, HTTPException, status
-from api.security.auth import get_current_user
 #from api.security.users import fake_users_db
 from .auth import get_current_user
 

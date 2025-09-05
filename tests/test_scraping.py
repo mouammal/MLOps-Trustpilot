@@ -34,7 +34,6 @@ def test_parse_reviews_live():
 
     # Initialisation du driver
     driver = scraping.setup_driver()
-    options.add_argument('--headless=new')
 
     # Scraper les reviews réelles
     reviews = scraping.scrape_company_reviews(driver, company_name, company_url)
