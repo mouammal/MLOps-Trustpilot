@@ -25,9 +25,7 @@ if not os.path.exists(SCORE_MODEL_PATH):
 
 
 def test_classification_model_prediction():
-    assert os.path.exists(
-        LABEL_MODEL_PATH
-    ), "Modèle de classification introuvable."
+    assert os.path.exists(LABEL_MODEL_PATH), "Modèle de classification introuvable."
     model = joblib.load(LABEL_MODEL_PATH)
 
     sample_text = "Livraison rapide et service excellent"
@@ -47,9 +45,7 @@ def test_classification_model_prediction():
 
 
 def test_regression_model_prediction():
-    assert os.path.exists(
-        SCORE_MODEL_PATH
-    ), "Modèle de régression introuvable."
+    assert os.path.exists(SCORE_MODEL_PATH), "Modèle de régression introuvable."
     model = joblib.load(SCORE_MODEL_PATH)
 
     sample_text = "Très bonne qualité de produit, je recommande fortement"

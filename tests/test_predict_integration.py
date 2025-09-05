@@ -30,7 +30,9 @@ def client():
     api.router.on_startup = []
 
     # Injecter des modèles déterministes (Dummy)
-    clf = DummyClassifier(strategy="constant", constant="positif").fit([["x"]], ["positif"])
+    clf = DummyClassifier(strategy="constant", constant="positif").fit(
+        [["x"]], ["positif"]
+    )
     reg = DummyRegressor(strategy="constant", constant=4.2).fit([[0]], [4.2])
     api.state.label_model = clf
     api.state.score_model = reg
@@ -45,7 +47,9 @@ def _get_token(client: TestClient, username: str, password: str) -> str:
         data={"username": username, "password": password},
         headers={"Content-Type": "application/x-www-form-urlencoded"},
     )
-    assert r.status_code == 200, f"Echec /token pour {username}: {r.status_code} {r.text}"
+    assert (
+        r.status_code == 200
+    ), f"Echec /token pour {username}: {r.status_code} {r.text}"
     return r.json()["access_token"]
 
 
@@ -58,7 +62,9 @@ def test_predict_endpoints_with_dummy_models(client):
     h_client = {"Authorization": f"Bearer {client_token}"}
 
     # Client → /predict-label OK
-    r1 = client.post("/predict-label", json={"text": "livraison rapide"}, headers=h_client)
+    r1 = client.post(
+        "/predict-label", json={"text": "livraison rapide"}, headers=h_client
+    )
     assert r1.status_code == 200
     assert "label" in r1.json()
     assert r1.json()["label"] == "Livraison"

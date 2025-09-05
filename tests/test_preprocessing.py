@@ -9,30 +9,30 @@ os.makedirs(os.path.dirname(PROCESSED_FILE), exist_ok=True)
 
 # Créer un CSV bidon si le fichier n'existe pas
 if not os.path.exists(PROCESSED_FILE):
-    df_mock = pd.DataFrame({
-        "clean_reviews": [
-            "livraison rapide et service excellent",
-            "très bonne qualité de produit",
-            "je recommande fortement",
-            "service client médiocre",
-            "produit défectueux"
-        ],
-        "category": [
-            "Livraison",
-            "Qualité/Prix",
-            "Recommandation",
-            "Service Client",
-            "Retour/Remboursement"
-        ],
-        "score_reviews": [5, 4, 5, 2, 1]
-    })
+    df_mock = pd.DataFrame(
+        {
+            "clean_reviews": [
+                "livraison rapide et service excellent",
+                "très bonne qualité de produit",
+                "je recommande fortement",
+                "service client médiocre",
+                "produit défectueux",
+            ],
+            "category": [
+                "Livraison",
+                "Qualité/Prix",
+                "Recommandation",
+                "Service Client",
+                "Retour/Remboursement",
+            ],
+            "score_reviews": [5, 4, 5, 2, 1],
+        }
+    )
     df_mock.to_csv(PROCESSED_FILE, index=False)
 
 
 def test_processed_data_exists():
-    assert os.path.exists(
-        PROCESSED_FILE
-    ), "Le fichier de données traitées est manquant"
+    assert os.path.exists(PROCESSED_FILE), "Le fichier de données traitées est manquant"
 
 
 def test_processed_data_columns():

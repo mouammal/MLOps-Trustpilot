@@ -32,7 +32,9 @@ def client():
     api.router.on_startup = []
 
     # 2) Injecter des modèles déterministes (pas d'artefacts requis)
-    clf = DummyClassifier(strategy="constant", constant="positif").fit([["x"]], ["positif"])
+    clf = DummyClassifier(strategy="constant", constant="positif").fit(
+        [["x"]], ["positif"]
+    )
     reg = DummyRegressor(strategy="constant", constant=4.2).fit([[0]], [4.2])
     api.state.label_model = clf
     api.state.score_model = reg

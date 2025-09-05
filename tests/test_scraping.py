@@ -9,10 +9,9 @@ os.makedirs(os.path.dirname(COMPANIES_FILE), exist_ok=True)
 
 # Créer un CSV bidon si le fichier n'existe pas
 if not os.path.exists(COMPANIES_FILE):
-    df_mock = pd.DataFrame({
-        "company": ["TestCompany"],
-        "href_company": ["http://example.com"]
-    })
+    df_mock = pd.DataFrame(
+        {"company": ["TestCompany"], "href_company": ["http://example.com"]}
+    )
     df_mock.to_csv(COMPANIES_FILE, index=False)
 
 
@@ -31,14 +30,16 @@ def test_parse_reviews_live():
 
     # Mock de la fonction scrape_company_reviews pour retourner une liste bidon
     def mock_scrape_company_reviews(driver, company_name, company_url):
-        return [{
-            "company": company_name,
-            "Id_reviews": "John Doe",
-            "title_reviews": "Super produit",
-            "reviews": "J'adore ce produit !",
-            "score_reviews": "4",
-            "published_date": "2025-08-12"
-        }]
+        return [
+            {
+                "company": company_name,
+                "Id_reviews": "John Doe",
+                "title_reviews": "Super produit",
+                "reviews": "J'adore ce produit !",
+                "score_reviews": "4",
+                "published_date": "2025-08-12",
+            }
+        ]
 
     reviews = mock_scrape_company_reviews(driver, company_name, company_url)
 
