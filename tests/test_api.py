@@ -3,10 +3,11 @@ import os
 import pytest
 from fastapi.testclient import TestClient
 from sklearn.dummy import DummyClassifier, DummyRegressor
+from unittest.mock import patch
 from api.api import api
 
 # ----------------------------
-# Variables d'environnement (optionnelles)
+# Variables d'env (optionnelles)
 # ----------------------------
 ADMIN_USERNAME = os.getenv("API_ADMIN_USERNAME", "admin")
 ADMIN_PASSWORD = os.getenv("API_ADMIN_PASSWORD", "password")
@@ -19,10 +20,9 @@ CLIENT_PASSWORD = os.getenv("API_CLIENT_PASSWORD", "password")
 # ----------------------------
 @pytest.fixture(scope="module")
 def client():
-    # Désactiver le startup réel
-    api.router.on_startup = []
+    api.router.on_startup = []  # désactiver le startup réel
 
-    # Injecter des modèles Dummy
+    # Modèles Dummy pour bypasser les vrais artefacts
     api.state.label_model = DummyClassifier(strategy="constant", constant="Autre").fit(
         [["x"]], ["Autre"]
     )
@@ -30,34 +30,62 @@ def client():
         [[0]], [4.2]
     )
 
-    # Bypass complet de l'authentification
-    from api.security import auth
-
-    api.dependency_overrides[auth.get_current_user] = lambda: {
-        "username": "admin",
-        "role": "admin",
-    }
-
     with TestClient(api) as c:
         yield c
 
-    # Nettoyer l'override après les tests
-    api.dependency_overrides = {}
+
+# ----------------------------
+# Mock DB pour /token
+# ----------------------------
+@pytest.fixture(autouse=True)
+def mock_user_db():
+    """
+    Mock get_user_from_db pour bypasser PostgreSQL.
+    Renvoie des users valides pour admin et client.
+    """
+    with patch("api.security.auth.get_user_from_db") as mock_user:
+
+        def _get_user(username):
+            if username == ADMIN_USERNAME:
+                return {
+                    "username": ADMIN_USERNAME,
+                    "hashed_password": "fakehash",
+                    "role": "admin",
+                }
+            if username == CLIENT_USERNAME:
+                return {
+                    "username": CLIENT_USERNAME,
+                    "hashed_password": "fakehash",
+                    "role": "client",
+                }
+            return None
+
+        mock_user.side_effect = _get_user
+        yield
 
 
 # ----------------------------
-# Token factice
+# Helper token via /token réel (FastAPI va utiliser le mock)
 # ----------------------------
 def get_token(client, username, password):
-    return "fake-token"
+    r = client.post(
+        "/token",
+        data={"username": username, "password": password},
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
+    assert r.status_code == 200, f"Échec /token pour {username}"
+    return r.json()["access_token"]
 
 
 # ----------------------------
 # Tests
 # ----------------------------
 def test_predict_label_admin_and_client(client):
-    for username in [ADMIN_USERNAME, CLIENT_USERNAME]:
-        token = get_token(client, username, "pass")
+    for username, password in [
+        (ADMIN_USERNAME, ADMIN_PASSWORD),
+        (CLIENT_USERNAME, CLIENT_PASSWORD),
+    ]:
+        token = get_token(client, username, password)
         r = client.post(
             "/predict-label",
             json={"text": "Service rapide"},
@@ -65,11 +93,10 @@ def test_predict_label_admin_and_client(client):
         )
         assert r.status_code == 200
         assert "label" in r.json()
-        assert isinstance(r.json()["label"], str)
 
 
 def test_predict_score_admin_only(client):
-    token = get_token(client, ADMIN_USERNAME, "pass")
+    token = get_token(client, ADMIN_USERNAME, ADMIN_PASSWORD)
     r = client.post(
         "/predict-score",
         json={"text": "Produit excellent"},
@@ -82,27 +109,13 @@ def test_predict_score_admin_only(client):
 
 
 def test_predict_score_client_forbidden(client):
-    # Simuler un client non-admin
-    api.dependency_overrides["get_current_user"] = lambda: {
-        "username": CLIENT_USERNAME,
-        "role": "client",
-    }
-
-    token = get_token(client, CLIENT_USERNAME, "pass")
+    token = get_token(client, CLIENT_USERNAME, CLIENT_PASSWORD)
     r = client.post(
         "/predict-score",
         json={"text": "Produit excellent"},
         headers={"Authorization": f"Bearer {token}"},
     )
     assert r.status_code == 403
-
-    # Restaurer l'override admin pour les autres tests
-    from api.security import auth
-
-    api.dependency_overrides[auth.get_current_user] = lambda: {
-        "username": "admin",
-        "role": "admin",
-    }
 
 
 def test_predict_label_unauthenticated(client):

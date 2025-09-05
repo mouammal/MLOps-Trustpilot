@@ -1,9 +1,10 @@
+# tests/test_predict_integration.py
 import os
 import pytest
 from fastapi.testclient import TestClient
 from sklearn.dummy import DummyClassifier, DummyRegressor
+from unittest.mock import patch
 from api.api import api
-from api.security.auth import get_current_user  # <- import direct
 
 # ----------------------------
 # Variables d'env (optionnelles)
@@ -19,9 +20,9 @@ CLIENT_PASSWORD = os.getenv("API_CLIENT_PASSWORD", "password")
 # ----------------------------
 @pytest.fixture(scope="module")
 def client():
-    api.router.on_startup = []  # désactiver startup réel
+    api.router.on_startup = []  # désactiver le startup réel
 
-    # Injecter des modèles Dummy
+    # Modèles Dummy
     api.state.label_model = DummyClassifier(strategy="constant", constant="Autre").fit(
         [["x"]], ["Autre"]
     )
@@ -29,34 +30,57 @@ def client():
         [[0]], [4.2]
     )
 
-    # Override get_current_user
-    api.dependency_overrides[get_current_user] = lambda: {
-        "username": "admin",
-        "role": "admin",
-    }
-
     with TestClient(api) as c:
         yield c
 
-    # Nettoyer après test
-    api.dependency_overrides = {}
+
+# ----------------------------
+# Mock DB pour /token
+# ----------------------------
+@pytest.fixture(autouse=True)
+def mock_user_db():
+    with patch("api.security.auth.get_user_from_db") as mock_user:
+
+        def _get_user(username):
+            if username == ADMIN_USERNAME:
+                return {
+                    "username": ADMIN_USERNAME,
+                    "hashed_password": "fakehash",
+                    "role": "admin",
+                }
+            if username == CLIENT_USERNAME:
+                return {
+                    "username": CLIENT_USERNAME,
+                    "hashed_password": "fakehash",
+                    "role": "client",
+                }
+            return None
+
+        mock_user.side_effect = _get_user
+        yield
 
 
 # ----------------------------
-# Token factice
+# Helper token via /token réel (FastAPI va utiliser le mock)
 # ----------------------------
 def get_token(client, username, password):
-    return "fake-token"
+    r = client.post(
+        "/token",
+        data={"username": username, "password": password},
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
+    assert r.status_code == 200, f"Échec /token pour {username}"
+    return r.json()["access_token"]
 
 
 # ----------------------------
 # Tests d'intégration
 # ----------------------------
 def test_predict_endpoints_with_dummy_models(client):
-    admin_token = get_token(client, ADMIN_USERNAME, "pass")
-    h_admin = {"Authorization": f"Bearer {admin_token}"}
+    admin_token = get_token(client, ADMIN_USERNAME, ADMIN_PASSWORD)
+    client_token = get_token(client, CLIENT_USERNAME, CLIENT_PASSWORD)
 
-    client_token = get_token(client, CLIENT_USERNAME, "pass")
+    h_admin = {"Authorization": f"Bearer {admin_token}"}
     h_client = {"Authorization": f"Bearer {client_token}"}
 
     # Client → /predict-label OK
@@ -81,9 +105,9 @@ def test_predict_endpoints_with_dummy_models(client):
     assert 0 <= score <= 5
 
     # Client → /predict-score FORBIDDEN
-    api.dependency_overrides[get_current_user] = lambda: {
-        "username": "client",
-        "role": "client",
-    }
     r4 = client.post("/predict-score", json={"text": "x"}, headers=h_client)
     assert r4.status_code == 403
+
+    # Sans token → /predict-label 401
+    r5 = client.post("/predict-label", json={"text": "test"})
+    assert r5.status_code == 401
