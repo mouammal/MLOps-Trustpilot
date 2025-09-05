@@ -1,10 +1,10 @@
-# tests/test_api.py
 import os
 import pytest
 from fastapi.testclient import TestClient
 from sklearn.dummy import DummyClassifier, DummyRegressor
 from unittest.mock import patch
 from api.api import api
+from api.security.auth import create_access_token
 
 # ----------------------------
 # Variables d'env (optionnelles)
@@ -39,17 +39,31 @@ def client():
 def mock_db_auth():
     """Bypass PostgreSQL pour /token."""
     with patch("api.security.auth.get_user_from_db") as mock_user:
-        mock_user.return_value = {
-            "username": "admin",
-            "hashed_password": "fakehash",
-            "role": "admin",
-        }
+        # retourne un utilisateur admin ou client selon username
+        def fake_user(username):
+            if username == ADMIN_USERNAME:
+                return {
+                    "username": ADMIN_USERNAME,
+                    "hashed_password": "fakehash",
+                    "role": "admin",
+                }
+            else:
+                return {
+                    "username": CLIENT_USERNAME,
+                    "hashed_password": "fakehash",
+                    "role": "client",
+                }
+
+        mock_user.side_effect = fake_user
         yield
 
 
 def get_token(client, username, password):
-    """Token factice pour bypass /token"""
-    return "fake-token"
+    """Génère un JWT valide pour tests"""
+    # rôle pour l’endpoint
+    role = "admin" if username == ADMIN_USERNAME else "client"
+    token = create_access_token({"sub": username, "role": role})
+    return token
 
 
 # ----------------------------
@@ -64,7 +78,9 @@ def test_predict_label_admin_and_client(client):
             headers={"Authorization": f"Bearer {token}"},
         )
         assert r.status_code == 200
-        assert "label" in r.json()
+        body = r.json()
+        assert "label" in body
+        assert isinstance(body["label"], str)
 
 
 def test_predict_score_admin_only(client):

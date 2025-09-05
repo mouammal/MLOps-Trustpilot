@@ -39,10 +39,11 @@ def client():
 def mock_db_auth():
     """Bypass PostgreSQL pour /token."""
     with patch("api.security.auth.get_user_from_db") as mock_user:
-        mock_user.return_value = {
-            "username": "admin",
+        # On renvoie un user générique pour admin et client
+        mock_user.side_effect = lambda username: {
+            "username": username,
             "hashed_password": "fakehash",
-            "role": "admin",
+            "role": "admin" if username == ADMIN_USERNAME else "client",
         }
         yield
 
