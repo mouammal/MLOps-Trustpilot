@@ -1,13 +1,16 @@
 import pytest
 from fastapi.testclient import TestClient
 from unittest.mock import patch
-from api.api import app
+from api.api import create_app
 from sklearn.dummy import DummyClassifier, DummyRegressor
 
 ADMIN_USERNAME = "admin"
 ADMIN_PASSWORD = "adminpass"
 CLIENT_USERNAME = "client"
 CLIENT_PASSWORD = "clientpass"
+
+# Créer une instance FastAPI pour les tests
+app = create_app()
 
 
 # Fixture globale pour mock DB + dummy models

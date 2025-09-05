@@ -51,10 +51,10 @@ jobs:
           SECRET_KEY: test-secret
           ACCESS_TOKEN_EXPIRE_MINUTES: "30"
           API_ADMIN_USERNAME: admin
-          API_ADMIN_PASSWORD: adminpass
+          API_ADMIN_PASSWORD: admin
           API_CLIENT_USERNAME: client
-          API_CLIENT_PASSWORD: clientpass
-          PYTHONPATH: ${{ github.workspace }}/src
+          API_CLIENT_PASSWORD: client
+          PYTHONPATH: ${{ github.workspace }}
         run: pytest -q
 
       - name: DVC repro (if present)
