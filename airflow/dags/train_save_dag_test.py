@@ -3,7 +3,7 @@ import sys
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
-from models.train_model import main as train_main
+from src.models.train_model import main as train_main
 
 # Ensure src is in Python path
 SRC_PATH = "/opt/airflow/src"

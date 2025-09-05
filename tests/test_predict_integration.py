@@ -1,21 +1,28 @@
+# tests/test_predict_integration.py
+import os
 import pytest
 from fastapi.testclient import TestClient
 from unittest.mock import patch
-from api.api import create_app
 from sklearn.dummy import DummyClassifier, DummyRegressor
 
-ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "adminpass"
-CLIENT_USERNAME = "client"
-CLIENT_PASSWORD = "clientpass"
+from api.api import api
 
-# Créer une instance FastAPI pour les tests
-app = create_app()
+# Récupérer les identifiants depuis l'environnement (CI ou .env)
+ADMIN_USERNAME = os.getenv("API_ADMIN_USERNAME", "admin")
+ADMIN_PASSWORD = os.getenv("API_ADMIN_PASSWORD", "admin")
+CLIENT_USERNAME = os.getenv("API_CLIENT_USERNAME", "client")
+CLIENT_PASSWORD = os.getenv("API_CLIENT_PASSWORD", "client")
+
+# Skip si les creds ne sont pas fournies (utile localement)
+SKIP_AUTH = not all([ADMIN_USERNAME, ADMIN_PASSWORD, CLIENT_USERNAME, CLIENT_PASSWORD])
+skip_if_no_auth = pytest.mark.skipif(
+    SKIP_AUTH,
+    reason="Identifiants API manquants dans .env ou variables d'environnement",
+)
 
 
-# Fixture globale pour mock DB + dummy models
-@pytest.fixture(autouse=True)
-def mock_db_auth_and_models():
+@pytest.fixture(scope="module", autouse=True)
+def mock_db_and_models():
     # Mock DB auth
     with patch("api.security.auth.get_user_from_db") as mock_get_user:
 
@@ -36,11 +43,11 @@ def mock_db_auth_and_models():
 
         mock_get_user.side_effect = _fake_get_user
 
-        # Inject dummy models
-        app.state.label_model = DummyClassifier(
+        # Injecter des modèles déterministes
+        api.state.label_model = DummyClassifier(
             strategy="constant", constant="Autre"
         ).fit([["x"]], ["Autre"])
-        app.state.score_model = DummyRegressor(strategy="constant", constant=4.2).fit(
+        api.state.score_model = DummyRegressor(strategy="constant", constant=4.2).fit(
             [[0]], [4.2]
         )
 
@@ -49,11 +56,11 @@ def mock_db_auth_and_models():
 
 @pytest.fixture
 def client():
-    return TestClient(app)
+    return TestClient(api)
 
 
-# Helper pour obtenir token via /token (mock DB permet bypass password réel)
 def get_token(client, username, password):
+    """Helper pour obtenir un token via /token"""
     r = client.post(
         "/token",
         data={"username": username, "password": password},
@@ -63,9 +70,12 @@ def get_token(client, username, password):
     return r.json()["access_token"]
 
 
+# -------------------------
 # Tests intégration endpoints
+# -------------------------
 
 
+@skip_if_no_auth
 def test_predict_label_admin_and_client(client):
     admin_token = get_token(client, ADMIN_USERNAME, ADMIN_PASSWORD)
     client_token = get_token(client, CLIENT_USERNAME, CLIENT_PASSWORD)
@@ -89,6 +99,7 @@ def test_predict_label_admin_and_client(client):
     assert r_client.json()["label"] == "Autre"
 
 
+@skip_if_no_auth
 def test_predict_score_admin_only(client):
     admin_token = get_token(client, ADMIN_USERNAME, ADMIN_PASSWORD)
     r = client.post(
@@ -100,6 +111,7 @@ def test_predict_score_admin_only(client):
     assert r.json()["score"] == 4.2
 
 
+@skip_if_no_auth
 def test_predict_score_client_forbidden(client):
     client_token = get_token(client, CLIENT_USERNAME, CLIENT_PASSWORD)
     r = client.post(
