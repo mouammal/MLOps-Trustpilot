@@ -1,5 +1,5 @@
 # Paramètres globaux (chemins, hyperparams)
-from nltk.corpus import stopwords
+#from nltk.corpus import stopwords
 from typing import Set
 
 try:

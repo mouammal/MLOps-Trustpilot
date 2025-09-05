@@ -1,6 +1,6 @@
 import psycopg2
 from passlib.context import CryptContext
-from users import fake_users_db
+#from users import fake_users_db
 
 # Contexte pour hacher les mots de passe
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
