@@ -85,27 +85,3 @@ def test_known_categories():
     assert unique_labels.issubset(
         known_categories
     ), f"Des catégories inconnues sont présentes : {unique_labels - known_categories}"
-
-
-
-def test_known_categories():
-    df = pd.read_csv("data/processed/processed_data.csv", low_memory=False)
-    known_categories = {
-        "Livraison",
-        "Service Client",
-        "Recommandation",
-        "Qualité/Prix",
-        "Satisfaction Générale",
-        "Formation/Entreprise",
-        "Autre",
-        "Hôtellerie / Hébergement",
-        "Retour/Remboursement",
-        "Disponibilité/Stock",
-        "Site Web/Expérience d’Achat",
-        "Produit & Qualité/Prix",
-        "Commande/Paiement",
-    }
-    unique_labels = set(df["category"].unique())
-    assert unique_labels.issubset(
-        known_categories
-    ), f"Des catégories inconnues sont présentes : {unique_labels - known_categories}"
