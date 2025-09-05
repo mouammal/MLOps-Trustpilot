@@ -4,7 +4,6 @@ import json
 import logging
 import sys
 import time 
-# uuid
 from typing import Any, Dict
 
 class JsonFormatter(logging.Formatter):

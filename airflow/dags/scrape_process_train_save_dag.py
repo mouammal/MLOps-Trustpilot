@@ -1,5 +1,5 @@
-import sys
 import os
+import sys
 import json
 from airflow import DAG
 from airflow.operators.python import PythonOperator 

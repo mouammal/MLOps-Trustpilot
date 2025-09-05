@@ -1,6 +1,5 @@
-import sys
 import os
-#from pathlib import Path
+import sys
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
