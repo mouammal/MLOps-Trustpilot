@@ -1,0 +1,5 @@
+outs:
+- md5: d6cb82901263daa82ff43cb65afcbd91
+  size: 53661419
+  hash: md5
+  path: trustpilot_data.csv
