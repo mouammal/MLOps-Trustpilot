@@ -7,12 +7,12 @@ from unittest.mock import patch
 from api.api import api
 
 # ----------------------------
-# Variables d'env (optionnelles)
+# Variables d'env
 # ----------------------------
 ADMIN_USERNAME = os.getenv("API_ADMIN_USERNAME", "admin")
-ADMIN_PASSWORD = os.getenv("API_ADMIN_PASSWORD", "password")
+ADMIN_PASSWORD = os.getenv("API_ADMIN_PASSWORD", "adminpass")
 CLIENT_USERNAME = os.getenv("API_CLIENT_USERNAME", "client")
-CLIENT_PASSWORD = os.getenv("API_CLIENT_PASSWORD", "password")
+CLIENT_PASSWORD = os.getenv("API_CLIENT_PASSWORD", "clientpass")
 
 
 # ----------------------------
@@ -20,9 +20,10 @@ CLIENT_PASSWORD = os.getenv("API_CLIENT_PASSWORD", "password")
 # ----------------------------
 @pytest.fixture(scope="module")
 def client():
-    api.router.on_startup = []  # désactiver le startup réel
+    # Désactiver startup réel
+    api.router.on_startup = []
 
-    # Modèles Dummy pour bypasser les vrais artefacts
+    # Injecter des modèles Dummy
     api.state.label_model = DummyClassifier(strategy="constant", constant="Autre").fit(
         [["x"]], ["Autre"]
     )
@@ -35,37 +36,27 @@ def client():
 
 
 # ----------------------------
-# Mock DB pour /token
+# Mock authenticate_user pour bypass mot de passe
 # ----------------------------
 @pytest.fixture(autouse=True)
-def mock_user_db():
-    """
-    Mock get_user_from_db pour bypasser PostgreSQL.
-    Renvoie des users valides pour admin et client.
-    """
-    with patch("api.security.auth.get_user_from_db") as mock_user:
+def mock_auth():
+    from api.security.auth import authenticate_user
 
-        def _get_user(username):
+    with patch("api.security.auth.authenticate_user") as mock_auth_fn:
+
+        def _fake_auth(username, password):
             if username == ADMIN_USERNAME:
-                return {
-                    "username": ADMIN_USERNAME,
-                    "hashed_password": "fakehash",
-                    "role": "admin",
-                }
+                return {"username": ADMIN_USERNAME, "role": "admin"}
             if username == CLIENT_USERNAME:
-                return {
-                    "username": CLIENT_USERNAME,
-                    "hashed_password": "fakehash",
-                    "role": "client",
-                }
-            return None
+                return {"username": CLIENT_USERNAME, "role": "client"}
+            return False
 
-        mock_user.side_effect = _get_user
+        mock_auth_fn.side_effect = _fake_auth
         yield
 
 
 # ----------------------------
-# Helper token via /token réel (FastAPI va utiliser le mock)
+# Helper pour token via /token
 # ----------------------------
 def get_token(client, username, password):
     r = client.post(
@@ -119,6 +110,5 @@ def test_predict_score_client_forbidden(client):
 
 
 def test_predict_label_unauthenticated(client):
-    # Pas de token → 401
     r = client.post("/predict-label", json={"text": "Service rapide"})
     assert r.status_code == 401
