@@ -40,8 +40,6 @@ def client():
 # ----------------------------
 @pytest.fixture(autouse=True)
 def mock_auth():
-    from api.security.auth import authenticate_user
-
     with patch("api.security.auth.authenticate_user") as mock_auth_fn:
 
         def _fake_auth(username, password):
