@@ -229,3 +229,6 @@ psycopg2-binary>=2.9
 passlib[bcrypt]>=1.7
 python-dotenv==1.0.1
 prometheus_client==0.17.1
+pytest==8.4.1
+ruff==0.4.10
+black==24.4.2
