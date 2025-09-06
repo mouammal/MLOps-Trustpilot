@@ -57,12 +57,11 @@ auth.get_user_from_db = fake_get_user_from_db
 @pytest.fixture(scope="module")
 def client():
     # Dummy models
-    api.state.label_model = DummyClassifier(strategy="constant", constant="Autre").fit(
-        [["x"]], ["Autre"]
-    )
-    api.state.score_model = DummyRegressor(strategy="constant", constant=4.2).fit(
-        [[0]], [4.2]
-    )
+    api.state.label_model = DummyClassifier(strategy="constant", constant="Autre")
+    api.state.label_model.fit([["dummy"]], ["Autre"])
+
+    api.state.score_model = DummyRegressor(strategy="constant", constant=4.2)
+    api.state.score_model.fit([[0]], [4.2])
 
     with TestClient(api) as c:
         yield c
