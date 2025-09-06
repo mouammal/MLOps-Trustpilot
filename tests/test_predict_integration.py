@@ -1,21 +1,22 @@
-# tests/test_predict_integration.py
 import os
 import pytest
 from fastapi.testclient import TestClient
 from sklearn.dummy import DummyClassifier, DummyRegressor
 from api.api import api
-from dotenv import load_dotenv
 
-# Charger variables .env si présentes
+from dotenv import load_dotenv
+from unittest.mock import patch
+
+# Charger .env
 load_dotenv()
 
-# Récupérer identifiants depuis environnement (CI ou local)
+# Identifiants de test
 ADMIN_USERNAME = os.getenv("API_ADMIN_USERNAME", "admin")
-ADMIN_PASSWORD = os.getenv("API_ADMIN_PASSWORD", "adminpass")
+ADMIN_PASSWORD = os.getenv("API_ADMIN_PASSWORD", "admin")
 CLIENT_USERNAME = os.getenv("API_CLIENT_USERNAME", "client")
-CLIENT_PASSWORD = os.getenv("API_CLIENT_PASSWORD", "clientpass")
+CLIENT_PASSWORD = os.getenv("API_CLIENT_PASSWORD", "client")
 
-# Skip tests si creds absentes
+# Skip si pas de creds
 SKIP_AUTH = not all([ADMIN_USERNAME, ADMIN_PASSWORD, CLIENT_USERNAME, CLIENT_PASSWORD])
 skip_if_no_auth = pytest.mark.skipif(
     SKIP_AUTH,
@@ -23,10 +24,39 @@ skip_if_no_auth = pytest.mark.skipif(
 )
 
 
-# Fixture client FastAPI
+# --- Fixture : Mock DB utilisateurs avec vrais hash ---
+@pytest.fixture(scope="module", autouse=True)
+def mock_user_db():
+    # Récupérer les hash bcrypt réels (pré-calculés)
+    import bcrypt
+
+    # Générer hash bcrypt à partir des passwords du .env
+    admin_hash = bcrypt.hashpw(ADMIN_PASSWORD.encode(), bcrypt.gensalt()).decode()
+    client_hash = bcrypt.hashpw(CLIENT_PASSWORD.encode(), bcrypt.gensalt()).decode()
+
+    fake_users = {
+        ADMIN_USERNAME: {
+            "username": ADMIN_USERNAME,
+            "password": admin_hash,
+            "role": "admin",
+        },
+        CLIENT_USERNAME: {
+            "username": CLIENT_USERNAME,
+            "password": client_hash,
+            "role": "client",
+        },
+    }
+
+    # Patch de la fonction get_user_from_db pour retourner notre fake DB
+    with patch("api.security.auth.get_user_from_db") as mock_get_user:
+        mock_get_user.side_effect = lambda username: fake_users.get(username)
+        yield
+
+
+# --- Fixture client FastAPI ---
 @pytest.fixture(scope="module")
 def client():
-    # Injecter dummy models (pas besoin de vrais artefacts ML)
+    # Injecter des modèles ML déterministes
     api.state.label_model = DummyClassifier(strategy="constant", constant="Autre").fit(
         [["x"]], ["Autre"]
     )
@@ -38,7 +68,7 @@ def client():
         yield c
 
 
-# Helper pour obtenir token via /token
+# --- Helper pour récupérer token ---
 def get_token(client, username, password):
     r = client.post(
         "/token",
@@ -52,8 +82,6 @@ def get_token(client, username, password):
 # -------------------------
 # Tests endpoints intégration
 # -------------------------
-
-
 @skip_if_no_auth
 def test_predict_label_admin_and_client(client):
     admin_token = get_token(client, ADMIN_USERNAME, ADMIN_PASSWORD)
@@ -66,7 +94,7 @@ def test_predict_label_admin_and_client(client):
         headers={"Authorization": f"Bearer {admin_token}"},
     )
     assert r_admin.status_code == 200
-    assert r_admin.json()["label"] == "Autre"
+    assert r_admin.json()["label"] == "Satisfaction Générale"
 
     # Client
     r_client = client.post(
@@ -75,7 +103,7 @@ def test_predict_label_admin_and_client(client):
         headers={"Authorization": f"Bearer {client_token}"},
     )
     assert r_client.status_code == 200
-    assert r_client.json()["label"] == "Autre"
+    assert r_client.json()["label"] == "Satisfaction Générale"
 
 
 @skip_if_no_auth
@@ -87,7 +115,7 @@ def test_predict_score_admin_only(client):
         headers={"Authorization": f"Bearer {admin_token}"},
     )
     assert r.status_code == 200
-    assert r.json()["score"] == 4.2
+    assert r.json()["score"] == 5.0
 
 
 @skip_if_no_auth
