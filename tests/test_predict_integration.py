@@ -1,7 +1,6 @@
 import os
 import pytest
 from fastapi.testclient import TestClient
-from sklearn.dummy import DummyClassifier, DummyRegressor
 from passlib.context import CryptContext
 from api.api import api
 from api.security import auth
@@ -25,7 +24,6 @@ skip_if_no_auth = pytest.mark.skipif(
 # -----------------------------
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# Générer hash des vrais passwords
 FAKE_USER_DB = {
     ADMIN_USERNAME: {
         "username": ADMIN_USERNAME,
@@ -39,7 +37,7 @@ FAKE_USER_DB = {
     },
 }
 
-# Patch de la fonction get_user_from_db pour CI
+# Patch get_user_from_db pour CI
 original_get_user = auth.get_user_from_db
 
 
@@ -51,19 +49,27 @@ auth.get_user_from_db = fake_get_user_from_db
 
 
 # -----------------------------
+# Dummy models forcés
+# -----------------------------
+class DummyLabelModel:
+    def predict(self, X):
+        return ["Autre"] * len(X)
+
+
+class DummyScoreModel:
+    def predict(self, X):
+        return [4.2] * len(X)
+
+
+# -----------------------------
 # Fixture client FastAPI
 # -----------------------------
 @pytest.fixture(scope="module")
 def client():
-    # Dummy models pour tests
-    api.state.label_model = DummyClassifier(strategy="constant", constant="Autre")
-    api.state.label_model.fit([["dummy"]], ["Autre"])
-
-    api.state.score_model = DummyRegressor(strategy="constant", constant=4.2)
-    api.state.score_model.fit([[0]], [4.2])
-
-    # Créer TestClient après avoir assigné les modèles
     with TestClient(api) as c:
+        # Injecter les faux modèles après démarrage
+        api.state.label_model = DummyLabelModel()
+        api.state.score_model = DummyScoreModel()
         yield c
 
 
