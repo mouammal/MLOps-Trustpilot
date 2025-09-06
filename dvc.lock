@@ -9,8 +9,8 @@ stages:
       size: 61627058
     - path: src/data/preprocess.py
       hash: md5
-      md5: ddbd3034968a44ed65b5977a17abc25f
-      size: 2143
+      md5: 834a27eae5436543c4be025fcd2c4ce2
+      size: 2182
     outs:
     - path: data/processed/processed_data.csv
       hash: md5
@@ -25,12 +25,12 @@ stages:
       size: 80038281
     - path: src/models/pipelines.py
       hash: md5
-      md5: e9c62acc2314100e27fad588ce4b3be3
-      size: 825
+      md5: 3d779fb421d167540ece18be862d03fc
+      size: 1070
     - path: src/models/train_model.py
       hash: md5
-      md5: f831cd077f2dea87776c559d876a6d08
-      size: 2616
+      md5: 6a45cbe26630bb5c67b22d4c12af9695
+      size: 2705
     outs:
     - path: models/linear_regression/metrics.json
       hash: md5
