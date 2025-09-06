@@ -1,6 +1,6 @@
 import os
 import sys
-from airflow import DAG
+from airflow.models import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
 from src.models.train_model import main as train_main

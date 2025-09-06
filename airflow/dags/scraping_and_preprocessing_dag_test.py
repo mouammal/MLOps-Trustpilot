@@ -2,7 +2,7 @@ import json
 import os
 import sys
 
-from airflow import DAG
+from airflow.models import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
 import pandas as pd
