@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 from sklearn.dummy import DummyClassifier, DummyRegressor
 from passlib.context import CryptContext
 from api.api import api
+from api.security import auth
 
 # -----------------------------
 # Variables d'environnement / creds
@@ -40,8 +41,6 @@ FAKE_USER_DB = {
 }
 
 # Patch de la fonction get_user_from_db pour CI
-from api.security import auth
-
 original_get_user = auth.get_user_from_db
 
 
