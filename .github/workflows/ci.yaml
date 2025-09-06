@@ -26,25 +26,24 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
 
-      - name: Install Airflow & project deps
+      - name: Install deps
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt || true
+          pip install -r requirements.txt
           pip install \
             "apache-airflow==2.6.1" \
             "pendulum<3.0,>=2.1" \
             "flask-session==0.4.0" \
-            "connexion<3"
+            "connexion<3" \
+            pytest black ruff "dvc==3.62.0"
           mkdir -p airflow_home
           export AIRFLOW_HOME=$(pwd)/airflow_home
-          airflow db init 
-
-      - name: Install DVC
-        run: |
-          python -m pip install "dvc==3.62.0"
+          airflow db init
 
       - name: Lint (ruff)
-        run: ruff check .
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          ruff check .
 
       - name: Lint (black --check)
         run: black --check .
@@ -63,9 +62,10 @@ jobs:
       - name: DVC repro (if present)
         run: |
           if [ -f dvc.yaml ]; then
-            echo "Running DVC pipeline (ignoring lockfile validation errors)..."
-            dvc repro || echo "Ignoring lockfile validation errors"
+            dvc repro || true
             dvc metrics show || true
+          fi
 
       - name: Build Docker image
         run: docker build -t mlops-trustpilot-api:ci .
+
