@@ -119,7 +119,7 @@ orjson==3.11.2
 outcome==1.3.0.post0
 packaging==23.0
 pandas==2.0.3
-ydata-profiling==4.6.2
+ydata-profiling==4.6.1
 pandocfilters==1.5.0
 parso==0.8.3
 pathspec==0.12.1
@@ -169,7 +169,7 @@ rsa==4.9.1
 ruamel.yaml==0.18.14
 ruamel.yaml.clib==0.2.12
 scikit-learn==1.6.1
-scipy==1.11.4
+scipy==1.9.3
 scmrepo==3.5.2
 seaborn==0.12.2
 selenium==4.28.1
