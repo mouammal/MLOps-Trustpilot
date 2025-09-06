@@ -5,7 +5,8 @@ from fastapi.testclient import TestClient
 from sklearn.dummy import DummyClassifier, DummyRegressor
 from passlib.context import CryptContext
 from api.api import api
-from api.security import auth, authenticate_user
+from api.security import auth
+from api.security.auth import authenticate_user
 
 # -----------------------------
 # Variables d'environnement / creds
@@ -50,7 +51,7 @@ def fake_get_user_from_db(username: str):
 auth.get_user_from_db = fake_get_user_from_db
 
 # Patch authenticate_user pour utiliser la fake DB
-original_authenticate_user = authenticate_user
+original_authenticate_user = auth.authenticate_user
 
 
 def fake_authenticate_user(username: str, password: str):
