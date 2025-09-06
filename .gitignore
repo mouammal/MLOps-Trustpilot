@@ -12,12 +12,20 @@ __pycache__/
 .ipynb_checkpoints/
 
 # === DONNÉES (gérées avec DVC) ===
-data/raw/raw_data.csv
-data/raw/companies_links.csv
-data/raw/scrape_state.json
-data/raw/trustpilot_data_raw_2025-09-05__083004.csv
-data/raw/trustpilot_data_raw_2025-09-05__061005.csv
-data/raw/trustpilot_data.csv
+#data/raw/raw_data.csv
+#data/raw/companies_links.csv
+#data/raw/scrape_state.json
+#data/raw/trustpilot_data_raw_2025-09-05__083004.csv
+#data/raw/trustpilot_data_raw_2025-09-05__061005.csv
+#data/raw/trustpilot_data.csv
+
+# === DONNÉES (gérées avec DVC) ===
+# Ignore tous les CSV par défaut
+data/raw/*.csv
+
+# Exception : CSV utilisés dans le pipeline
+!data/raw/raw_data.csv
+
 data/processed/processed_data.csv
 models/random_forest/model.joblib
 models/random_forest/metrics.json
