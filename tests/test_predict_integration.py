@@ -6,7 +6,6 @@ from sklearn.dummy import DummyClassifier, DummyRegressor
 from passlib.context import CryptContext
 from api.api import api
 from api.security import auth
-from api.security.auth import authenticate_user
 
 # -----------------------------
 # Variables d'environnement / creds
