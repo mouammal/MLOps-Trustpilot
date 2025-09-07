@@ -1,13 +1,14 @@
 import os
 import sys
-
-SRC_PATH = "/opt/airflow/src"
-if SRC_PATH not in sys.path:
-    sys.path.insert(0, SRC_PATH)
 from airflow.models.dag import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
 from models.train_model import main as train_main
+
+SRC_PATH = "/opt/airflow/src"
+if SRC_PATH not in sys.path:
+    sys.path.insert(0, SRC_PATH)
+
 
 
 # --- Config ---

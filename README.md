@@ -68,7 +68,7 @@ git clone <URL_DU_REPO>
 cd MLOps-Trustpilot
 ```
 
-### 2. Créer un environnement virtuel
+### 2. Créer un environnement virtuel (PYTHON 3.11 ONLY)
 ```
 python -m venv venv
 source venv/bin/activate  # Linux / Mac
@@ -79,9 +79,17 @@ venv\Scripts\activate  # Windows
 ```
 pip install --upgrade pip
 pip install -r requirements.txt
+```  
+  
+### 4. DVC : Récuperer les data dagshub
 ```
+- https://dagshub.com/mouammal.ziadah/MLOps-Trustpilot
+- remote > data > DVC :  
+    - dvc remote modify origin --local access_key_id  TOKEN
+    - dvc remote modify origin --local secret_access_key TOKEN
+``` 
 
-### 4. Construire les images Docker
+### 5. Construire les images Docker
 
 Cette commande va créer les images pour :  
 - mlops_trustpilot_api (API FastAPI)    
@@ -90,7 +98,7 @@ Cette commande va créer les images pour :
 docker compose build 
 ```
 
-### 5. Lancer les services avec Docker Compose :  
+### 6. Lancer les services avec Docker Compose :  
 - API FastAPI : http://localhost:8000   
 - Airflow Web UI : http://localhost:8080  
 - Airflow Postgres : port 5432  
@@ -98,10 +106,10 @@ docker compose build
 - Prometheus : http://localhost:9090
 - Grafana : http://localhost:3000  
 ```
-docker compose up -d
+docker compose up --build -d
 ```
 
-### 6. Utiliser l’API (exemple prediction label)
+### 7. Utiliser l’API (exemple prediction label)
 Il faut se connecter d'abord via "Authorize" ou obtenir un "Access Token" via le endpoint /token  
 ```   
 curl -X POST "http://localhost:8000/predict-label" 
@@ -123,7 +131,7 @@ Invoke-RestMethod -Uri "http://localhost:8000/predict-label" `
 -Body '{ "text": "la livraison est rapide et efficace" }'
 ```
 
-### 7. Utiliser Airflow  
+### 8. Utiliser Airflow  
 - Se connecter à l’UI : http://localhost:8080
 - Username / Password par défaut : airflow / airflow  
 - DAGs disponible :  
@@ -134,19 +142,19 @@ Invoke-RestMethod -Uri "http://localhost:8000/predict-label" `
 - Exécution automatique du DAG :
     - scrping pendant 3 jrs, puis training des modèles ML le 4e jour, puis saving.  
   
-### 8. Accès aux données et modèles  
+### 9. Accès aux données et modèles  
 - Données raw : ./data/raw/
 - Données processed : ./data/processed/
 - Modèles ML :
     - Random Forest : ./models/random_forest/model.joblib  
     - Linear Regression : ./models/linear_regression/model.joblib
 
-### 9. Nettoyer l’environnement (arret des conteneurs) 
+### 10. Nettoyer l’environnement (arret des conteneurs) 
 ``` 
 docker compose down 
 ```
  
-### 10. Docker Compose Services
+### 11. Docker Compose Services
 - API + Jobs
     - api : API FastAPI
     - preprocess : job preprocessing
