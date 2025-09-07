@@ -30,7 +30,7 @@ def get_user_from_db(username: str):
         dbname=os.getenv("DB_NAME", "airflow"),
         user=os.getenv("DB_USER", "airflow"),
         password=os.getenv("DB_PASSWORD", "airflow"),
-        host=os.getenv("DB_HOST", "airflow_postgres"), # 127.0.0.1  
+        host=os.getenv("DB_HOST", "airflow_postgres"),  # 127.0.0.1
         port=os.getenv("DB_PORT", 5432),
     )
     cur = conn.cursor()

@@ -97,7 +97,6 @@ def parse_reviews(html, company):
                     )
                     else None
                 ),
-                
                 "reviews": (
                     card.find(
                         "p",
