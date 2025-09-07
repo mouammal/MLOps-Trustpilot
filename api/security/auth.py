@@ -27,10 +27,10 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 # --- Fonction pour récupérer un utilisateur depuis PostgreSQL ---
 def get_user_from_db(username: str):
     conn = psycopg2.connect(
-        dbname=os.getenv("DB_NAME", "trustpilot_users"),
+        dbname=os.getenv("DB_NAME", "airflow"),
         user=os.getenv("DB_USER", "airflow"),
         password=os.getenv("DB_PASSWORD", "airflow"),
-        host=os.getenv("DB_HOST", "airflow_postgres"),
+        host=os.getenv("DB_HOST", "airflow_postgres"), # 127.0.0.1  
         port=os.getenv("DB_PORT", 5432),
     )
     cur = conn.cursor()
