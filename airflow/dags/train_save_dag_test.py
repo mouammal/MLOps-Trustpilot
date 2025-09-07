@@ -10,7 +10,6 @@ if SRC_PATH not in sys.path:
     sys.path.insert(0, SRC_PATH)
 
 
-
 # --- Config ---
 PROCESSED_FOLDER = "/opt/airflow/data/processed"
 PROCESSED_FILE = os.path.join(PROCESSED_FOLDER, "processed_data.csv")
