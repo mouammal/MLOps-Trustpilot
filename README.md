@@ -61,7 +61,7 @@ trustpilot-mlops/
 ├── README.md                       # Documentation du projet
 '''</code></pre>
 
-### 1. cloner le projet 
+### 1. Cloner le projet 
 ``` 
 cd ~
 git clone <URL_DU_REPO>
