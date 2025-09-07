@@ -22,10 +22,10 @@ __pycache__/
 # === DONNÉES (gérées avec DVC) ===
 # Ignore tous les CSV par défaut
 data/raw/*.csv
-data/raw/scrape_state.json
 
 # Exception : CSV utilisés dans le pipeline
 !data/raw/raw_data.csv
+!data/raw/scrape_state.json
 
 data/processed/processed_data.csv
 models/random_forest/model.joblib

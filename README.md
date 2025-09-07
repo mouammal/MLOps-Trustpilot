@@ -87,6 +87,7 @@ pip install -r requirements.txt
 - remote > data > DVC :  
     - dvc remote modify origin --local access_key_id  TOKEN
     - dvc remote modify origin --local secret_access_key TOKEN
+- DVC pull
 ``` 
 
 ### 5. Construire les images Docker

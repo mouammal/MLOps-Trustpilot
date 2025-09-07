@@ -1,8 +1,10 @@
 # src/data/preprocess.py
 from __future__ import annotations
+import sys
 import os
 from pathlib import Path
 import pandas as pd
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".")))
 from utils.helpers import clean_text, assign_label
 
 
