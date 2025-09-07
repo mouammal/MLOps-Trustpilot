@@ -1,7 +1,7 @@
 # Fonctions utilitaires (logs, config, etc.)
 
 import re
-from src.config import CUSTOM_STOPWORDS, CATEGORIES
+from config import CUSTOM_STOPWORDS, CATEGORIES
 
 
 def clean_text(text: str) -> str:
