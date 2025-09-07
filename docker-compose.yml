@@ -59,6 +59,7 @@ services:
       - "5432:5432"
     volumes:
       - airflow_postgres_data:/var/lib/postgresql/data
+      - ./db/users.sql:/docker-entrypoint-initdb.d/users.sql:ro
     restart: unless-stopped
 
   airflow:
