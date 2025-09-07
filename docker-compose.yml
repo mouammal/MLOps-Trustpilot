@@ -134,3 +134,4 @@ volumes:
   airflow_postgres_data:
   grafana_data:
   pgadmin_data:
+  prometheus_data:
