@@ -16,7 +16,7 @@ def add_user(username: str, password: str, role: str, created_at=None):
         dbname="airflow",
         user="airflow",
         password="airflow",
-        host="airflow_postgres",  # airflow_postgres ou 127.0.0.1 sur windows
+        host="127.0.0.1",  # airflow_postgres ou 127.0.0.1 sur powershell windows
         port=5432,
     )
     cur = conn.cursor()
@@ -85,19 +85,19 @@ if __name__ == "__main__":
     # add_user("marin", "psg", "client")
     # add_user("donnaruma", "city", "client")
     # add_user("gyokeres", "arsenal", "client")
-    # add_user("frimpong", "liverpool", "client")
-    # add_user("mkerkez", "liverpool", "client")
-    # add_user("mamardashvili", "liverpool", "client")
-    # add_user("simons", "tottenham", "client")
+    add_user("frimpong", "liverpool", "client")
+    add_user("mkerkez", "liverpool", "client")
+    add_user("mamardashvili", "liverpool", "client")
+    add_user("simons", "tottenham", "client")
     add_user("kudus", "tottenham", "client")
-# add_user("dier", "monaco", "client")
-# add_user("fati", "monaco", "client")
-# add_user("joaopedro", "chelsea", "client")
-# add_user("garnacho", "chelsea", "client")
-# add_user("rabiot", "milan", "client")
-# add_user("mosquera", "arsenal", "client")
-# add_user("reijnders", "manchester", "client")
-# add_user("cherki", "city", "client")
-# add_user("bettinelli", "city", "client")
-# add_user("quansah", "leverkusen", "client")
-# add_user("ben seghir", "leverkusen", "client")
+    add_user("dier", "monaco", "client")
+    # add_user("fati", "monaco", "client")
+    # add_user("joaopedro", "chelsea", "client")
+    # add_user("garnacho", "chelsea", "client")
+    # add_user("rabiot", "milan", "client")
+    # add_user("mosquera", "arsenal", "client")
+    # add_user("reijnders", "manchester", "client")
+    # add_user("cherki", "city", "client")
+    # add_user("bettinelli", "city", "client")
+    # add_user("quansah", "leverkusen", "client")
+    # add_user("ben seghir", "leverkusen", "client")
