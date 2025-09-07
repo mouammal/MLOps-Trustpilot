@@ -51,7 +51,7 @@ def accept_cookies(driver):
             )
         )
         accept_button.click()
-        time.sleep(0.1)
+        time.sleep(0.2)
     except Exception:
         pass
 
@@ -64,7 +64,7 @@ def click_see_all_reviews(driver):
             )
         )
         driver.execute_script("arguments[0].click();", see_all_button)
-        time.sleep(0.1)
+        time.sleep(0.2)
     except Exception as e:
         print(f"Le bouton 'Voir tous les avis' n'a pas été trouvé : {e}")
 
@@ -97,7 +97,7 @@ def parse_reviews(html, company):
                     )
                     else None
                 ),
-                # CDS_Typography_appearance-default__dd9b51 CDS_Typography_prettyStyle__dd9b51 CDS_Typography_heading-xs__dd9b51
+                
                 "reviews": (
                     card.find(
                         "p",
@@ -158,7 +158,7 @@ def save_reviews_to_csv(df, date_str):
 def run_scraping_pipeline(df_companies):
     all_reviews = []
     driver = setup_driver()
-    print("\n[PIPELINE SCRAPING] Démarrage du scraping des avis Trustpilot")
+    print("\n[PIPELINE SCRAPING] Démarrage du scraping des avis Trustpilot\n")
 
     for _, row in df_companies.iterrows():
         company = row["company"]
@@ -199,7 +199,13 @@ if __name__ == "__main__":
     df = pd.read_csv("data/raw/companies_links.csv").head(nb_company)
     print(f"Taille de Companies_links.csv : {df.shape}")
 
+    start_time = time.perf_counter()
     raw_df, raw_filename, total_reviews, error_rate = run_scraping_pipeline(
         df_companies=df
     )
-    print(raw_df["title_reviews"])
+    end_time = time.perf_counter()
+
+    elapsed_time = end_time - start_time
+    print("\n", raw_df["reviews"])
+
+    print(f"\nTemps de scraping : {elapsed_time:.2f} secondes")
