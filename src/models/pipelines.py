@@ -11,6 +11,7 @@ import numpy as np
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".")))
 from utils.helpers import apply_negations
 
+
 def build_label_pipeline() -> Pipeline:
     return Pipeline(
         [
