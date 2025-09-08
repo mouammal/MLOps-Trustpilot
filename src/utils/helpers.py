@@ -19,6 +19,20 @@ def clean_text(text: str) -> str:
     return text
 
 
+def handle_negations(text: str) -> str:
+    """
+    Gère les cas de négation en fusionnant avec le mot suivant.
+    Ex : "pas bon" -> "pas_bon"
+    """
+    text = re.sub(r"\b(pas|ne|n'|jamais|rien|aucun|ni|sans)\s+(\w+)", r"\1_\2", text)
+    return text
+
+
+def apply_negations(texts):
+    """Applique handle_negations à une liste de textes"""
+    return [handle_negations(t) for t in texts]
+
+
 def assign_label(review: str) -> str:
     """
     Attribue une catégorie à un avis client en fonction de mots-clés définis.
