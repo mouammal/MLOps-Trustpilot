@@ -8,8 +8,8 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import FunctionTransformer
 import numpy as np
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".")))
-from utils.helpers import apply_negations
+# sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+# from src.utils.helpers import apply_negations
 
 
 def build_label_pipeline() -> Pipeline:
@@ -38,7 +38,7 @@ def build_label_pipeline() -> Pipeline:
 def build_score_pipeline() -> Pipeline:
     return Pipeline(
         [
-            ("neg", FunctionTransformer(apply_negations)),
+            # ("neg", FunctionTransformer(apply_negations)),
             ("tfidf", TfidfVectorizer(min_df=3, ngram_range=(1, 3))),
             ("reg", Ridge(alpha=1.0, random_state=42)),
         ]
