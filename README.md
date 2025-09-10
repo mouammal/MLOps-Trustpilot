@@ -1,65 +1,84 @@
-<pre><code>'''
-trustpilot-mlops/
-├── airflow/
-│   ├── dags/                         
-│   │   └── scrape_process_train_save_dag.py           # DAGs Airflow
-│   │   └── scraping_and_preprocessing_dag_test.py     # DAGs Airflow    
-│   │   └── train_save_dag_test.py                     # DAGs Airflow
-│   ├── logs/                  
-│   └── plugings/  
-│ 
-├── data/
-│   ├── raw/                         # Données brutes (scrapées)
-│   │   └── raw_data.csv
-│   ├── processed/                   # Données nettoyées, prêtes à l'entraînement
+<pre><code> 
+MLOps-Trustpilot/
+├── airflow/                                        # Orchestration de pipelines (Airflow)
+│   ├── dags/                                       # DAGs (pipelines) Airflow
+│   │   ├── scrape_process_train_save_dag.py        # Scraping + preprocessing + entraînement + sauvegarde modèle
+│   │   ├── scraping_and_preprocessing_dag_test.py  # Test DAG scraping + preprocessing
+│   │   └── train_save_dag_test.py                  # Test DAG entraînement + sauvegarde
+│   ├── airflow.sh                                  # Script de lancement Airflow
+│   └── requirements.txt                            # Dépendances spécifiques Airflow
+│
+├── api/                                            # API FastAPI
+│   └── security/                                   # Gestion sécurité et utilisateurs
+│       ├── __init__.py
+│       ├── auth.py                                 # Authentification (JWT, OAuth2…)
+│       ├── db_users.py                             # Gestion des utilisateurs stockés (DB / mémoire)
+│       ├── permissions.py                          # Vérification des rôles & droits d’accès
+│       └── users.py                                # Modèles et services liés aux utilisateurs
+│   ├── __init__.py
+│   ├── api.py                                      # Définition des endpoints (predict, health, docs…)
+│   └── schemas.py                                  # Schémas Pydantic (validation des données I/O)
+│
+├── data/                                           # Données versionnées avec DVC
+│   ├── processed/                                  # Données traitées (pour entraînement)
 │   │   └── processed_data.csv
+│   └── raw/                                        # Données brutes (scraping Trustpilot)
+│       ├── companies_links.csv.dvc
+│       ├── raw_data.csv.dvc
+│       ├── scrape_state.json                       # État du scraping (checkpoint)
+│       ├── trustpilot_data.csv.dvc
+│       ├── trustpilot_data_raw_2025-08-12.csv.dvc
+│       ├── trustpilot_data_raw_2025-09-05__061005.csv.dvc
+│       └── trustpilot_data_raw_2025-09-05__083004.csv.dvc
 │
-├── src/                            # Code source (modules Python)
-│   ├── data/                       # Scripts de traitement et de préparation des données
-│   │   └── preprocess.py
-│   ├── models/                     # Entraînement, évaluation, chargement des modèles
-│   │   ├── train_model.py
-│   │   └── evaluate_model.py
-│   ├── utils/                      # Fonctions utilitaires (logs, config, etc.)
-│   │   └── helpers.py
-│   └── config.py                   # Paramètres globaux (chemins, hyperparams)
+├── db/                                             # Base de données
+│   └── users.sql                                   # Script SQL pour table utilisateurs
 │
-├── models/                         # Modèles sauvegardés (versionnés avec DVC/MLflow)
+├── models/                                         # Modèles entraînés (joblib) versionnés par DVC
+│   ├── linear_regression/
+│   │   └── model.joblib
 │   ├── random_forest/
-│   │   ├── model.joblib
-│   │   └── metrics.json
-│   └── linear_regression/
-│       ├── model.joblib
-│       └── metrics.json
+│   │   └── model.joblib
+│   └── __init__.py
 │
-├── api/                            # API FastAPI
-│   ├── api.py
-│   ├── schemas.py
-│   └── utils.py                    # Fonctions de prédiction & chargement modèle
-|   └── security/                   # Dossier pour la gestion de la sécurité
-│      ├── auth.py                  # Authentification (token JWT, OAuth2, etc.)
-│      ├── permissions.py           # Rôles, scopes, accès restreint
-│      └── config.py                # Clés secrètes, durée des tokens, etc.
+├── prometheus/                                     # Monitoring (Prometheus)
+│   └── prometheus.yml                              # Config Prometheus (scraping API, metrics)
 │
-├── tests/                          # Tests automatisés
-│   ├── test_api.py
-│   ├── test_preprocessing.py
-│   └── test_models.py
+├── src/                                            # Code source (librairie interne)
+│   ├── data/                                       # Préparation et scraping des données
+│   │   ├── __init__.py
+│   │   ├── preprocess.py                           # Nettoyage, encodage, features engineering
+│   │   └── scraping.py                             # Scraping Trustpilot (collecte des avis)
+│   ├── models/                                     # Entraînement et pipeline ML
+│   │   ├── __init__.py
+│   │   ├── pipelines.py                            # Pipelines ML (prétraitement + modèle)
+│   │   └── train_model.py                          # Script d’entraînement
+│   └── utils/                                      # Outils & fonctions génériques
+│       ├── __init__.py
+│       ├── helpers.py                              # Fonctions utilitaires diverses
+│       └── logging.py                              # Configuration logging centralisé
+│   ├── __init__.py
+│   └── config.py                                   # Paramètres globaux (chemins, hyperparams…)
 │
-├── pipelines/                      # Pipelines (DVC & scripts orchestrés)
-│   ├── data_pipeline.py
-│   └── train_pipeline.py
+├── tests/                                          # Tests unitaires & d’intégration
+│   ├── __init__.py
+│   ├── test_api.py                                 # Tests API FastAPI
+│   ├── test_health.py                              # Tests endpoints health
+│   ├── test_models.py                              # Tests entraînement et chargement modèles
+│   ├── test_predict_integration.py                 # Tests intégrés (requête → prédiction)
+│   ├── test_preprocessing.py                       # Tests data preprocessing
+│   └── test_scraping.py                            # Tests scraping Trustpilot
 │
-├── Dockerfile                      # Conteneurisation
-├── docker-compose.yml              # Orchestrateur
-├── Dockerfile.airflow
-├── .env
-├── requirements.txt                # Dépendances
-├── setup.sh                        # Script d'installation/env automatique
-├── dvc.yaml                        # Pipelines versionnés DVC
-├── .gitignore
-├── README.md                       # Documentation du projet
-'''</code></pre>
+├── Dockerfile                                      # Image principale (API + services)
+├── Dockerfile.airflow                              # Image spécifique pour Airflow
+├── README.md                                       # Documentation du projet
+├── docker-compose.yml                              # Orchestration multi-services (API, DB, Airflow, Prometheus…)
+├── dvc.lock                                        # Fichier de verrouillage DVC 
+├── dvc.yaml                                        # Définition des pipelines DVC (scraping, preprocessing, training…)
+├── requirements.txt                                # Dépendances principales du projet
+├── servers.json                                    # Configuration des serveurs (API / workers)
+└── setup.sh                                        # Script d’installation/env automatique
+</code></pre>
 
 ### 1. Cloner le projet 
 ``` 
