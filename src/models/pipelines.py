@@ -1,11 +1,8 @@
 from __future__ import annotations
-import sys
-import os
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import Ridge
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import FunctionTransformer
 import numpy as np
 
 # sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
